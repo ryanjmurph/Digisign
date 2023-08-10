@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect,Response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import LargeBinary
+import sqlite3
+import json
+
 
 
 app = Flask(__name__)
@@ -51,9 +54,31 @@ def getImage(id):
         return "There is no such image",404
     return Response(img.content, mimetype=img.mimetype) # displays image
     
+@app.route('/display')
+def display_images():
+    database = sqlite3.connect('instance/files.db')
+    cursorfordatabase = database.cursor()
+    print("Connection is established")
+
+    query = "SELECT content FROM image"
+    query2 = "SELECT id FROM image"
+    cursorfordatabase.execute(query)
+    records = cursorfordatabase.fetchall()
+
+    images = records
+    number = len(records)
+    print(number)
+
+    return render_template('display.html', number = number)
+    #return render_template(number)
+
     
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all() #creates image
     app.run(debug=True) 
+
+
+
+
