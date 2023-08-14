@@ -24,7 +24,7 @@ class Group:
 
     def all():
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM digisign.group"
+            sql = "SELECT * FROM post_groups"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result

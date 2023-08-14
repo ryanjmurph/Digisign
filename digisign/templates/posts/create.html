@@ -15,13 +15,14 @@
     <div class="container-fluid w-50 mt-5">
       <div class="card">
         <div class="card-body">
-          <form onsubmit="return submitForm(event)">
+          <form action="" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
               <label for="title" class="form-label">Title</label>
               <input
                 type="text"
                 class="form-control"
                 id="title"
+                name="title"
                 required
                 value="Test"
               />
@@ -37,17 +38,17 @@
                   type="checkbox"
                   role="switch"
                   id="{{ 'group-device-checkbox-' + group.id|string }}"
-                  name="post_groups[]"
+                  name="post_groups"
                   value="{{ group.id }}"
                 />
-                <label class="form-check-label" for="{{ 'group-device-checkbox-' + group.id|string }}">
+                <label
+                  class="form-check-label"
+                  for="{{ 'group-device-checkbox-' + group.id|string }}"
+                >
                   {{ group.name }}
                 </label>
               </div>
               {% endfor %}
-              
-              
-              
             </div>
             <div class="row mb-3">
               <div class="col">
@@ -81,6 +82,7 @@
                   type="radio"
                   name="post_type"
                   id="post-media-upload"
+                  value="image"
                   checked
                 />
                 <label class="form-check-label" for="post-file-upload">
@@ -93,9 +95,22 @@
                   type="radio"
                   name="post_type"
                   id="post-html-content"
+                  value="html"
                 />
                 <label class="form-check-label" for="post-html-content">
                   HTML Editor
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="post_type"
+                  id="post-web-link"
+                  value="link"
+                />
+                <label class="form-check-label" for="post-web-link">
+                  Web Link
                 </label>
               </div>
             </div>
@@ -103,16 +118,30 @@
             <div class="mb-5" id="file-upload-div">
               <div class="mb-3">
                 <label for="postImage" class="form-label">Image Post</label>
-                <input class="form-control" type="file" id="postImage" />
+                <input
+                  class="form-control"
+                  name="image"
+                  type="file"
+                  id="postImage"
+                />
               </div>
             </div>
 
             <div class="mb-5" id="html-content-div" style="display: none">
               <label for="editor" class="form-label">Post Content</label>
-              <div id="editor" name="postHtml">
+              <textarea id="editor" name="htmlContent">
                 <h1>This is your post title!</h1>
                 <p>Here is some content for your post!</p>
-              </div>
+              </textarea>
+            </div>
+            <div class="mb-5" id="web-link-input" style="display: none">
+              <label for="web-link" class="form-label">Web Link</label>
+              <input
+                type="text"
+                class="form-control"
+                id="web-link"
+                name="web_link"
+              />
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
           </form>
@@ -135,6 +164,7 @@
         .getElementById("post-media-upload")
         .addEventListener("click", function () {
           document.getElementById("html-content-div").style.display = "none";
+          document.getElementById("web-link-input").style.display = "none";
           document.getElementById("file-upload-div").style.display = "block";
         });
 
@@ -143,6 +173,15 @@
         .addEventListener("click", function () {
           document.getElementById("html-content-div").style.display = "block";
           document.getElementById("file-upload-div").style.display = "none";
+          document.getElementById("web-link-input").style.display = "none";
+        });
+
+      document
+        .getElementById("post-web-link")
+        .addEventListener("click", function () {
+          document.getElementById("html-content-div").style.display = "none";
+          document.getElementById("file-upload-div").style.display = "none";
+          document.getElementById("web-link-input").style.display = "block";
         });
 
       function validateDates() {
@@ -176,36 +215,37 @@
         return true;
       }
 
-      function submitForm(e) {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append("title", document.getElementById("title").value);
-        formData.append(
-          "start_date",
-          document.getElementById("start_date").value
-        );
-        formData.append("end_date", document.getElementById("end_date").value);
-        formData.append(
-          "post_type",
-          document.getElementsByName("post_type").value
-        );
-        formData.append(
-          "post_groups",
-          document.getElementsByName("post_groups[]").value
-        );
-        formData.append("post_html", document.getElementById("editor").value);
-        formData.append(
-          "post_image",
-          document.getElementById("postImage").value
-        );
+      // TODO: Remove this function
+      // function submitForm(e) {
+      //   e.preventDefault();
+      //   const formData = new FormData();
+      //   formData.append("title", document.getElementById("title").value);
+      //   formData.append(
+      //     "start_date",
+      //     document.getElementById("start_date").value
+      //   );
+      //   formData.append("end_date", document.getElementById("end_date").value);
+      //   formData.append(
+      //     "post_type",
+      //     document.getElementsByName("post_type").value
+      //   );
+      //   formData.append(
+      //     "post_groups",
+      //     document.getElementsByName("post_groups[]").value
+      //   );
+      //   formData.append("post_html", document.getElementById("editor").value);
+      //   formData.append(
+      //     "post_image",
+      //     document.getElementById("postImage").value
+      //   );
 
-        fetch("http://localhost:5000/post/create-post", {
-          method: "POST",
-          body: formData,
-        }).then((response) => {
-          console.log(response);
-        });
-      }
+      //   fetch("http://localhost:5000/post/create-post", {
+      //     method: "POST",
+      //     body: formData,
+      //   }).then((response) => {
+      //     console.log(response);
+      //   });
+      // }
     </script>
   </body>
 </html>

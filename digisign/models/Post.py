@@ -7,8 +7,8 @@ from database.database import MYSQL
 
 connection = MYSQL().get_connection()
 
-class Post:
 
+class Post:
     id = None
     title = None
     type = None
@@ -22,18 +22,32 @@ class Post:
     created_at = None
     updated_at = None
 
-    def __init__(self,id,title,type,startDate,endDate,imageLink,htmlContent,webLink,state) -> None:
+    def __init__(
+        self,
+        id=None,
+        title=None,
+        type=None,
+        startDate=None,
+        endDate=None,
+        imageLink=None,
+        htmlContent=None,
+        webLink=None,
+        state=None,
+    ) -> None:
         self.id = id
         self.title = title
         self.type = type
-        self.startDate = startDate
-        self.endDate = endDate
-        self.imageLink = imageLink
-        self.htmlContent = htmlContent
-        self.webLink = webLink
+        self.start_date = startDate
+        self.end_date = endDate
+        self.image_link = imageLink
+        self.html_content = htmlContent
+        self.web_link = webLink
         self.state = state
 
-
+        # log the details of the post
+        print(
+            f"Post: {self.title}, Type: {self.type}, Start Date: {self.start_date}, End Date: {self.end_date}, Image Link: {self.image_link}, HTML Content: {self.html_content}, Web Link: {self.web_link}, State: {self.state}"
+        )
 
     def all():
         with connection.cursor() as cursor:
@@ -41,17 +55,18 @@ class Post:
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
-        
+
     def find(id):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM post WHERE id=%s"
             cursor.execute(sql, (id))
             result = cursor.fetchone()
             return result
-        
+
     def insert(self):
         with connection.cursor() as cursor:
-            sql = "INSERT INTO post (title, type, start_date,end_date,image_link,html_content,web_link,state) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            
             cursor.execute(
                 sql,
                 (
@@ -68,3 +83,10 @@ class Post:
             connection.commit()
             self.id = cursor.lastrowid
         return self
+
+    def save_groups(self, groups):
+        for group in groups:
+            with connection.cursor() as cursor:
+                sql = "INSERT INTO post_group (post_id, group_id) VALUES (%s, %s)"
+                cursor.execute(sql, (self.id, group))
+                connection.commit()
