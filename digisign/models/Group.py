@@ -3,9 +3,12 @@
 # Groups model using Pysql. 
 
 import datetime
+from database.database import MYSQL
+
+connection = MYSQL().get_connection()
 
 
-class Groups:
+class Group:
 
     id = None
     name = None
@@ -21,7 +24,7 @@ class Groups:
 
     def all():
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM groups"
+            sql = "SELECT * FROM digisign.group"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result

@@ -18,50 +18,36 @@
           <form onsubmit="return submitForm(event)">
             <div class="mb-3">
               <label for="title" class="form-label">Title</label>
-              <input type="text" class="form-control" id="title" required value="Test"/>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                required
+                value="Test"
+              />
             </div>
             <div class="mb-3">
               <label for="groupsToDisplay" class="form-label"
                 >Post Visibility</label
               >
+              {% for group in groups %}
               <div class="form-check form-switch">
                 <input
                   class="form-check-input"
                   type="checkbox"
                   role="switch"
-                  id="public-group-checkbox"
+                  id="{{ 'group-device-checkbox-' + group.id|string }}"
                   name="post_groups[]"
-                  checked
+                  value="{{ group.id }}"
                 />
-                <label class="form-check-label" for="public-group-checkbox"
-                  >Public</label
-                >
+                <label class="form-check-label" for="{{ 'group-device-checkbox-' + group.id|string }}">
+                  {{ group.name }}
+                </label>
               </div>
-
-              <div class="form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  role="switch"
-                  id="cs-group-checkbox"
-                  name="post_groups[]"
-                />
-                <label class="form-check-label" for="cs-group-checkbox"
-                  >CS Teachers</label
-                >
-              </div>
-              <div class="form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  role="switch"
-                  id="campus-group-checkbox"
-                  name="post_groups[]"
-                />
-                <label class="form-check-label" for="campus-group-checkbox"
-                  >General Campus</label
-                >
-              </div>
+              {% endfor %}
+              
+              
+              
             </div>
             <div class="row mb-3">
               <div class="col">
