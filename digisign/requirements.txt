@@ -9,9 +9,13 @@ python-dotenv==0.15.0
 # Flask SQLAlchemy to connect to the MySQL database
 SQLAlchemy==1.3.20
 
+# Flask pymysql to connect to the MySQL database
+pymysql==1.1.0
+
 # Python Flask Migrate to handle database migrations.
 Flask-Migrate==2.5.3
 
 
 # Flash Marshmallow to serialize and deserialize objects to and from JSON from SQLAlchemy models
 Flask-Marshmallow==0.13.0
+
