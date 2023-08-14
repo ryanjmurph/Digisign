@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Display</title>
+</head>
+<body>
+    <img id="imageDisplay" src="" alt="Displayed Image">
+    <script>
+        var imageElement = document.getElementById('imageDisplay');
+        var amount = '{{ number }}'
+        var currentImageIndex = 0;
+        var imageIds = []
+        console.log(amount)
+
+        for (let i = 1; i< amount+1; i++) {
+            imageIds.push(i)
+            }
+        
+            async function displayNextImage() {
+    var imageId = imageIds[currentImageIndex];
+    
+    try {
+        // Get the image from the server
+        var response = await fetch('/' + imageId);
+        var blob = await response.blob();
+
+        // Create a URL for the image
+        var imageUrl = URL.createObjectURL(blob);
+        
+        // Display the image on the page
+        imageElement.src = imageUrl;
+
+        // Move to the next image in the sequence
+        currentImageIndex = (currentImageIndex + 1) % amount; // Cycle through images
+    } catch (error) {
+        console.error('Oops! Something went wrong:', error);
+    }
+}
+
+
+        // Initial image display
+        displayNextImage();
+
+        // Set up the interval to switch images every 10 seconds
+        setInterval(displayNextImage, 3000); // 10000 milliseconds = 10 seconds
+    </script>
+</body>
+</html>
