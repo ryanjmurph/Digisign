@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Post Create Demo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container-fluid w-50 mt-5">
+      <div class="card">
+        <div class="card-body">
+          <form action="" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                name="title"
+                required
+                value="Test"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="groupsToDisplay" class="form-label"
+                >Post Visibility</label
+              >
+              {% for group in groups %}
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="{{ 'group-device-checkbox-' + group.id|string }}"
+                  name="post_groups"
+                  value="{{ group.id }}"
+                />
+                <label
+                  class="form-check-label"
+                  for="{{ 'group-device-checkbox-' + group.id|string }}"
+                >
+                  {{ group.name }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="row mb-3">
+              <div class="col">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input
+                  type="date"
+                  onchange="validateDates()"
+                  class="form-control"
+                  id="start_date"
+                  name="start_date"
+                  required
+                />
+              </div>
+              <div class="col">
+                <label for="end_date" class="form-label">End Date</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  onchange="validateDates()"
+                  id="end_date"
+                  name="end_date"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label for="post-type"> Media Type </label>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="post_type"
+                  id="post-media-upload"
+                  value="image"
+                  checked
+                />
+                <label class="form-check-label" for="post-file-upload">
+                  Image Upload
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="post_type"
+                  id="post-html-content"
+                  value="html"
+                />
+                <label class="form-check-label" for="post-html-content">
+                  HTML Editor
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="post_type"
+                  id="post-web-link"
+                  value="link"
+                />
+                <label class="form-check-label" for="post-web-link">
+                  Web Link
+                </label>
+              </div>
+            </div>
+
+            <div class="mb-5" id="file-upload-div">
+              <div class="mb-3">
+                <label for="postImage" class="form-label">Image Post</label>
+                <input
+                  class="form-control"
+                  name="image"
+                  type="file"
+                  id="postImage"
+                />
+              </div>
+            </div>
+
+            <div class="mb-5" id="html-content-div" style="display: none">
+              <label for="editor" class="form-label">Post Content</label>
+              <textarea id="editor" name="htmlContent">
+                <h1>This is your post title!</h1>
+                <p>Here is some content for your post!</p>
+              </textarea>
+            </div>
+            <div class="mb-5" id="web-link-input" style="display: none">
+              <label for="web-link" class="form-label">Web Link</label>
+              <input
+                type="text"
+                class="form-control"
+                id="web-link"
+                name="web_link"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script>
+      ClassicEditor.create(document.querySelector("#editor")).catch((error) => {
+        console.error(error);
+      });
+    </script>
+    <script>
+      // check if the post type is file upload or html content
+      // if file upload, hide the editor and show the file upload
+      // if html content, hide the file upload and show the editor
+
+      document
+        .getElementById("post-media-upload")
+        .addEventListener("click", function () {
+          document.getElementById("html-content-div").style.display = "none";
+          document.getElementById("web-link-input").style.display = "none";
+          document.getElementById("file-upload-div").style.display = "block";
+        });
+
+      document
+        .getElementById("post-html-content")
+        .addEventListener("click", function () {
+          document.getElementById("html-content-div").style.display = "block";
+          document.getElementById("file-upload-div").style.display = "none";
+          document.getElementById("web-link-input").style.display = "none";
+        });
+
+      document
+        .getElementById("post-web-link")
+        .addEventListener("click", function () {
+          document.getElementById("html-content-div").style.display = "none";
+          document.getElementById("file-upload-div").style.display = "none";
+          document.getElementById("web-link-input").style.display = "block";
+        });
+
+      function validateDates() {
+        // first check if the start date is today or in the future
+        var startDate = document.getElementById("start_date").value;
+        var endDate = document.getElementById("end_date").value;
+        var today = new Date();
+
+        console.log({
+          start_date: startDate,
+          end_date: endDate,
+          today: today,
+          comparison: startDate < today,
+        });
+
+        const startDateTime = new Date(startDate).getTime();
+        const endDateTime = new Date(endDate).getTime();
+
+        if (startDate != "" && startDateTime < today.getTime()) {
+          alert("Start date must be today or in the future");
+          document.getElementById("start_date").value = "";
+          return false;
+        }
+
+        if (endDate != "" && endDateTime < startDateTime) {
+          alert("End date must be after start date");
+          document.getElementById("end_date").value = "";
+          return false;
+        }
+
+        return true;
+      }
+
+      // TODO: Remove this function
+      // function submitForm(e) {
+      //   e.preventDefault();
+      //   const formData = new FormData();
+      //   formData.append("title", document.getElementById("title").value);
+      //   formData.append(
+      //     "start_date",
+      //     document.getElementById("start_date").value
+      //   );
+      //   formData.append("end_date", document.getElementById("end_date").value);
+      //   formData.append(
+      //     "post_type",
+      //     document.getElementsByName("post_type").value
+      //   );
+      //   formData.append(
+      //     "post_groups",
+      //     document.getElementsByName("post_groups[]").value
+      //   );
+      //   formData.append("post_html", document.getElementById("editor").value);
+      //   formData.append(
+      //     "post_image",
+      //     document.getElementById("postImage").value
+      //   );
+
+      //   fetch("http://localhost:5000/post/create-post", {
+      //     method: "POST",
+      //     body: formData,
+      //   }).then((response) => {
+      //     console.log(response);
+      //   });
+      // }
+    </script>
+  </body>
+</html>
