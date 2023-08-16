@@ -2,7 +2,7 @@
 # 14/08/2023
 # This is the controller for creating, reading, updating and deleting posts
 
-from flask import Blueprint, render_template, abort, request
+from flask import Blueprint, redirect, render_template, abort, request, url_for
 from models.Post import Post
 from models.Group import Group
 
@@ -74,7 +74,9 @@ def create():
         post.save_groups(request.form["post_groups"])
 
     # redirect to the post create page with a success message
-    return render_template("posts/create.html", success="Post created successfully",groups=Group.all())
+    return render_template(
+        "posts/create.html", success="Post created successfully", groups=Group.all()
+    )
 
 
 @controller.route("/new", methods=["GET"])
@@ -82,3 +84,57 @@ def new():
     groups = Group.all()
     # return the form in templates/posts/create.html
     return render_template("posts/create.html", groups=groups)
+
+
+@controller.route("/<int:id>/approve-action", methods=["GET"])
+def approve_action(id):
+    # get action from the query string
+    action = request.args["action"]
+
+    # check if the action is valid
+    if action not in ["APPROVE", "WITHDRAW"]:
+        return abort(400, f"Invalid action {action} provided")
+
+    # get the post
+    post = Post.find(id)
+
+    if not post is None:
+        updated_state = "APPROVED" if action == "APPROVE" else "WITHDRAWN"
+        updates = {"state": updated_state}
+        print(f"Post ID {id} updated to {updates} successfully")
+        post.updates(updates)
+
+    else:
+        return abort(404, f"Post with id {id} not found")
+
+    # redirect to /posts/admin-view
+    return redirect(url_for("posts.list_posts"))
+
+
+@controller.route("/admin-view", methods=["GET"])
+def list_posts():
+    # check if filter is set in the query string
+    activeFilters = ""
+
+    if "filter" in request.args:
+        # check for filter by name
+        if request.args["filter"] == "title":
+            posts = Post.filter_by_title(request.args["search"])
+            activeFilters = "title=" + request.args["search"]
+
+        # check for filter by state
+        if request.args["filter"] == "state":
+            posts = Post.filter_by_state(request.args["search"])
+            activeFilters = "state=" + request.args["search"]
+
+        # check for filter by id
+        if request.args["filter"] == "id":
+            posts = Post.filter_by_id(request.args["search"])
+            activeFilters = "id=" + request.args["search"]
+    else:
+        posts = Post.all()
+
+    # return the form in templates/posts/create.html
+    return render_template(
+        "posts/admin/list.html", posts=posts, activeFilters=activeFilters
+    )

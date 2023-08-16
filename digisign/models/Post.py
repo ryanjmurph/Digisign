@@ -45,28 +45,41 @@ class Post:
         self.state = state
 
         # log the details of the post
-        print(
-            f"Post: {self.title}, Type: {self.type}, Start Date: {self.start_date}, End Date: {self.end_date}, Image Link: {self.image_link}, HTML Content: {self.html_content}, Web Link: {self.web_link}, State: {self.state}"
-        )
+        # print(
+        #     f"Post: {self.title}, Type: {self.type}, Start Date: {self.start_date}, End Date: {self.end_date}, Image Link: {self.image_link}, HTML Content: {self.html_content}, Web Link: {self.web_link}, State: {self.state}"
+        # )
+
+    def createInstance(self, result):
+        # parse the row into an instance of the post model
+        for key in result:
+            # set the value of the key to the instance variable
+            setattr(self, key, result[key])
+
+            # TODO:// Remove this debug
+            # print the instance variable
+            # print(f"Setting attribute {key} to {result[key]}")
+
+        return self
 
     def all():
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM post"
+            sql = "SELECT * FROM posts ORDER BY id DESC LIMIT 30"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
 
     def find(id):
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM post WHERE id=%s"
+            sql = "SELECT * FROM posts WHERE id=%s"
             cursor.execute(sql, (id))
             result = cursor.fetchone()
-            return result
+            # return instance of the post
+            return Post().createInstance(result)
 
     def insert(self):
         with connection.cursor() as cursor:
             sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            
+
             cursor.execute(
                 sql,
                 (
@@ -84,9 +97,76 @@ class Post:
             self.id = cursor.lastrowid
         return self
 
+    def updates(self, changes):
+        # Changes is a dict containing the changes to be made
+        # e.g. changes = {"title": "New Title", "state": "APPROVED"}
+
+        # Check through the changes dict and build the sql query to update the post
+        sql = "UPDATE posts SET "
+        for key in changes:
+            sql += f"{key}=%s, "
+        sql = sql[:-2]  # remove the last comma and space
+        sql += " WHERE id=%s"
+
+        # create a list of values to be updated
+        values = []
+        for key in changes:
+            values.append(changes[key])
+        values.append(self.id)
+
+        # execute the query
+        with connection.cursor() as cursor:
+            cursor.execute(sql, values)
+            connection.commit()
+
+        # return the updated post
+        return Post.find(self.id)
+
     def save_groups(self, groups):
         for group in groups:
             with connection.cursor() as cursor:
                 sql = "INSERT INTO post_group (post_id, group_id) VALUES (%s, %s)"
                 cursor.execute(sql, (self.id, group))
                 connection.commit()
+
+    def filter_by_id(id):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE id=%s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchall()
+            return result
+
+    def filter_by_title(title):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE title=%s"
+            cursor.execute(sql, (title))
+            result = cursor.fetchall()
+            return result
+
+    def filter_by_type(type):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE type=%s"
+            cursor.execute(sql, (type))
+            result = cursor.fetchall()
+            return result
+
+    def filter_by_state(type):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE state=%s"
+            cursor.execute(sql, (type))
+            result = cursor.fetchall()
+            return result
+
+    def filter_start_date(start_date):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE start_date=%s"
+            cursor.execute(sql, (start_date))
+            result = cursor.fetchall()
+            return result
+
+    def filter_end_date(end_date):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE end_date=%s"
+            cursor.execute(sql, (end_date))
+            result = cursor.fetchall()
+            return result
