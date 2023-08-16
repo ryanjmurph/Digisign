@@ -28,7 +28,7 @@
                         <a class="nav-link active" aria-current="page" href="#">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/posts/new">Posts</a>
+                        <a class="nav-link" href="/posts/admin-view">Posts (Admin)</a>
                     </li>
                 </ul>
                 <!-- <form class="d-flex" role="search">
@@ -130,21 +130,75 @@
 
                             </td>
                             <td>
-                                <p class="text-primary">
+                                {% if post.state == 'DRAFT' %}
+                                <p class="text-secondary">
                                     <strong>{{post.state}}</strong>
                                 </p>
+                                {% endif %}
+
+                                {% if post.state == 'PENDING_APPROVAL' %}
+                                <p class="text-warning">
+                                    <strong>{{post.state}}</strong>
+                                </p>
+                                {% endif %}
+
+                                {% if post.state == 'APPROVED' %}
+                                <p class="text-success">
+                                    <strong>{{post.state}}</strong>
+                                </p>
+                                {% endif %}
+
+                                {% if post.state == 'WITHDRAWN' %}
+                                <p class="text-danger">
+                                    <strong>{{post.state}}</strong>
+                                </p>
+                                {% endif %}
 
                             </td>
                             <td>{{post.created_by}}</td>
                             <td>{{post.created_at}}</td>
                             <td>
+                                <div class="flex text-decoration-none">
 
-                                <a href="/posts/{{post.id}}/edit">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="/posts/{{post.id}}/delete" class="text-danger">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+
+                                    {% if post.state == 'DRAFT' %}
+                                    <a href="/posts/{{post.id}}/edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="/posts/{{post.id}}/delete" class="text-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if post.state == 'APPROVED' %}
+                                    <a href="/posts/{{post.id}}/edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="/posts/{{post.id}}/approve-action?action=WITHDRAW" class="text-warning">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </a>
+                                    {% endif %}
+
+                                    {% if post.state == 'WITHDRAWN' %}
+                                    <a href="/posts/{{post.id}}/edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="/posts/{{post.id}}/approve-action?action=APPROVE" class="text-success">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </a>
+                                    {% endif %}
+
+                                    {% if post.state == 'PENDING_APPROVAL' %}
+                                    <a href="/posts/{{post.id}}/edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="/posts/{{post.id}}/approve-action?action=APPROVE" class="text-success">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </a>
+                                    <a href="/posts/{{post.id}}/approve-action?action=WITHDRAW" class="text-danger">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
 
                             </td>
                         </tr>

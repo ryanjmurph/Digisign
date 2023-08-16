@@ -2,7 +2,7 @@
 # 14/08/2023
 # This is the controller for creating, reading, updating and deleting posts
 
-from flask import Blueprint, render_template, abort, request
+from flask import Blueprint, redirect, render_template, abort, request, url_for
 from models.Post import Post
 from models.Group import Group
 
@@ -84,6 +84,31 @@ def new():
     groups = Group.all()
     # return the form in templates/posts/create.html
     return render_template("posts/create.html", groups=groups)
+
+
+@controller.route("/<int:id>/approve-action", methods=["GET"])
+def approve_action(id):
+    # get action from the query string
+    action = request.args["action"]
+
+    # check if the action is valid
+    if action not in ["APPROVE", "WITHDRAW"]:
+        return abort(400, f"Invalid action {action} provided")
+
+    # get the post
+    post = Post.find(id)
+
+    if not post is None:
+        updated_state = "APPROVED" if action == "APPROVE" else "WITHDRAWN"
+        updates = {"state": updated_state}
+        print(f"Post ID {id} updated to {updates} successfully")
+        post.updates(updates)
+
+    else:
+        return abort(404, f"Post with id {id} not found")
+
+    # redirect to /posts/admin-view
+    return redirect(url_for("posts.list_posts"))
 
 
 @controller.route("/admin-view", methods=["GET"])
