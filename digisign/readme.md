@@ -13,7 +13,7 @@ To run the application locally, you need to have the following installed:
 
 Before running the docker container, you need to set the following environment variables in a `.env` file. You may also copy the `.env.example` file and rename it to `.env`:
 
-To run the docker container, run the following command:
+To run the docker container, run the following command in the application directory:
 
 ```bash
 docker-compose up
