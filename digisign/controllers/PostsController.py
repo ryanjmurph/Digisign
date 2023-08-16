@@ -74,7 +74,9 @@ def create():
         post.save_groups(request.form["post_groups"])
 
     # redirect to the post create page with a success message
-    return render_template("posts/create.html", success="Post created successfully",groups=Group.all())
+    return render_template(
+        "posts/create.html", success="Post created successfully", groups=Group.all()
+    )
 
 
 @controller.route("/new", methods=["GET"])
@@ -82,3 +84,32 @@ def new():
     groups = Group.all()
     # return the form in templates/posts/create.html
     return render_template("posts/create.html", groups=groups)
+
+
+@controller.route("/admin-view", methods=["GET"])
+def list_posts():
+    # check if filter is set in the query string
+    activeFilters = ""
+
+    if "filter" in request.args:
+        # check for filter by name
+        if request.args["filter"] == "title":
+            posts = Post.filter_by_title(request.args["search"])
+            activeFilters = "title=" + request.args["search"]
+
+        # check for filter by state
+        if request.args["filter"] == "state":
+            posts = Post.filter_by_state(request.args["search"])
+            activeFilters = "state=" + request.args["search"]
+
+        # check for filter by id
+        if request.args["filter"] == "id":
+            posts = Post.filter_by_id(request.args["search"])
+            activeFilters = "id=" + request.args["search"]
+    else:
+        posts = Post.all()
+
+    # return the form in templates/posts/create.html
+    return render_template(
+        "posts/admin/list.html", posts=posts, activeFilters=activeFilters
+    )

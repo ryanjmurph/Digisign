@@ -51,14 +51,14 @@ class Post:
 
     def all():
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM post"
+            sql = "SELECT * FROM posts ORDER BY id DESC LIMIT 30"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
 
     def find(id):
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM post WHERE id=%s"
+            sql = "SELECT * FROM posts WHERE id=%s"
             cursor.execute(sql, (id))
             result = cursor.fetchone()
             return result
@@ -66,7 +66,7 @@ class Post:
     def insert(self):
         with connection.cursor() as cursor:
             sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            
+
             cursor.execute(
                 sql,
                 (
@@ -90,3 +90,45 @@ class Post:
                 sql = "INSERT INTO post_group (post_id, group_id) VALUES (%s, %s)"
                 cursor.execute(sql, (self.id, group))
                 connection.commit()
+
+    def filter_by_id(id):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE id=%s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchall()
+            return result
+
+    def filter_by_title(title):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE title=%s"
+            cursor.execute(sql, (title))
+            result = cursor.fetchall()
+            return result
+
+    def filter_by_type(type):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE type=%s"
+            cursor.execute(sql, (type))
+            result = cursor.fetchall()
+            return result
+
+    def filter_by_state(type):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE state=%s"
+            cursor.execute(sql, (type))
+            result = cursor.fetchall()
+            return result
+
+    def filter_start_date(start_date):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE start_date=%s"
+            cursor.execute(sql, (start_date))
+            result = cursor.fetchall()
+            return result
+
+    def filter_end_date(end_date):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE end_date=%s"
+            cursor.execute(sql, (end_date))
+            result = cursor.fetchall()
+            return result
