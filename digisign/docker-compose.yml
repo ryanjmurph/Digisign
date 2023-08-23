@@ -22,7 +22,7 @@ services:
     command: python app.py
     volumes:
       - .:/code
-      - intiliaze.sql:/docker-entrypoint-initdb.d/intiliaze.sql
+      - ./intiliaze.sql:/docker-entrypoint-initdb.d/intiliaze.sql
     depends_on:
       - db
 volumes:
