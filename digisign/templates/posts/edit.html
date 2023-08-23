@@ -1,0 +1,206 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/posts/admin-view">Posts</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit Post </li>
+    </ol>
+</nav>
+<h1>Edit Post - {{post.id}}</h1>
+<div class="card">
+    <div class="card-body">
+        <form action="" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="_method" value="PUT" />
+
+            <div class="mb-3">
+                <label for="title" class="form-label"><strong>Title</strong> </label>
+                <input type="text" class="form-control" id="title" name="title" required value="{{post.title}}" />
+            </div>
+            <div class="mb-3">
+                <label for="groupsToDisplay" class="form-label"><strong>Groups posts will display on</strong></label>
+                {% for group in groups %}
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                        id="{{ 'group-device-checkbox-' + group.id|string }}" name="post_groups"
+                        value="{{ group.id }}" />
+                    <label class="form-check-label" for="{{ 'group-device-checkbox-' + group.id|string }}">
+                        {{ group.name }}
+                    </label>
+                </div>
+                {%else%}
+                <div class="alert alert-danger" role="alert">
+                    No groups found. Your posts will not be visible on any devices.
+                </div>
+                {% endfor %}
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="start_date" class="form-label"><strong>Start Date</strong></label>
+                    <input type="date" onchange="validateDates()" class="form-control" value="{{post.start_date}}"
+                        id="start_date" name="start_date" required />
+                </div>
+                <div class="col">
+                    <label for="end_date" class="form-label"><strong>End Date</strong></label>
+                    <input type="date" class="form-control" onchange="validateDates()" value="{{post.end_date}}"
+                        id="end_date" name="end_date" required />
+                </div>
+            </div>
+            <div>
+                <label for="post-type"> <strong>Media Type</strong> </label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="post_type" id="post-media-upload" value="image"
+                        {% if post.type=='IMAGE' %}checked{% endif %}>
+                    <label class="form-check-label" for="post-file-upload">
+                        Image Upload
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="post_type" id="post-html-content" value="html" {%
+                        if post.type=='HTML' %}checked{% endif %} />
+                    <label class="form-check-label" for="post-html-content">
+                        HTML Editor
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="post_type" id="post-web-link" value="link" {% if
+                        post.type=='WEB_LINK' %}checked{% endif %} />
+                    <label class="form-check-label" for="post-web-link">
+                        Web Link
+                    </label>
+                </div>
+            </div>
+
+            {% if post.type == "IMAGE"%}
+            <div id="uploaded-file" class="mb-5">
+                <label for="uploadedImage" class="form-label">Existing Image</label>
+                <img src="/{{post.image_link}}" alt="Uploaded Image" class="image-fluid" />
+            </div>
+            {% endif %}
+
+            <div class="mb-5" id="file-upload-div">
+                <div class="mb-3">
+                    <label for="postImage" class="form-label">Replace Image</label>
+                    <input class="form-control" name="image" type="file" id="postImage" />
+                </div>
+            </div>
+
+            <div class="mb-5" id="html-content-div" style="display: none">
+                <label for="editor" class="form-label">
+                    <strong>HTML Content</strong>
+                </label>
+                <textarea id="editor" name="htmlContent">
+                    {% if post.type == "HTML" %}
+                    {{post.html_content}}
+                    {% else %}
+                    <h1>This is your post title!</h1>
+                    <p>Here is some content for your post!</p>
+                    {% endif %}
+            
+          </textarea>
+            </div>
+            <div class="mb-5" id="web-link-input" style="display: none">
+                <label for="web-link" class="form-label">Web Link</label>
+                <input type="text" class="form-control" id="web-link" name="web_link" />
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor.create(document.querySelector("#editor")).catch((error) => {
+            console.error(error);
+        });
+    </script>
+    <script>
+        // check if the post type is file upload or html content
+        // if file upload, hide the editor and show the file upload
+        // if html content, hide the file upload and show the editor
+
+        var postType = "{{post.type}}";
+        console.log(postType);
+        switch (postType) {
+            case "IMAGE":
+                postIsMedia();
+                break;
+            case "HTML":
+                postIsHTML();
+                break;
+            case "WEB_LINK":
+                postIsWebLink();
+                break;
+            default:
+                postIsMedia();
+        }
+
+
+        function postIsMedia() {
+            document.getElementById("html-content-div").style.display = "none";
+            document.getElementById("web-link-input").style.display = "none";
+            document.getElementById("file-upload-div").style.display = "block";
+        }
+
+        function postIsHTML() {
+            document.getElementById("html-content-div").style.display = "block";
+            document.getElementById("file-upload-div").style.display = "none";
+            document.getElementById("web-link-input").style.display = "none";
+        }
+
+        function postIsWebLink() {
+            document.getElementById("html-content-div").style.display = "none";
+            document.getElementById("file-upload-div").style.display = "none";
+            document.getElementById("web-link-input").style.display = "block";
+        }
+
+        document
+            .getElementById("post-media-upload")
+            .addEventListener("click", function () {
+                postIsMedia()
+            });
+
+        document
+            .getElementById("post-html-content")
+            .addEventListener("click", function () {
+                postIsHTML()
+            });
+
+        document
+            .getElementById("post-web-link")
+            .addEventListener("click", function () {
+                postIsWebLink()
+            });
+
+        function validateDates() {
+            // first check if the start date is today or in the future
+            var startDate = document.getElementById("start_date").value;
+            var endDate = document.getElementById("end_date").value;
+            var today = new Date();
+
+            console.log({
+                start_date: startDate,
+                end_date: endDate,
+                today: today,
+                comparison: startDate < today,
+            });
+
+            const startDateTime = new Date(startDate).getTime();
+            const endDateTime = new Date(endDate).getTime();
+
+            if (startDate != "" && startDateTime < today.getTime()) {
+                alert("Start date must be today or in the future");
+                document.getElementById("start_date").value = "";
+                return false;
+            }
+
+            if (endDate != "" && endDateTime < startDateTime) {
+                alert("End date must be after start date");
+                document.getElementById("end_date").value = "";
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</div>
+{% endblock %}

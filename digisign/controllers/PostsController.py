@@ -2,6 +2,7 @@
 # 14/08/2023
 # This is the controller for creating, reading, updating and deleting posts
 
+import os
 from flask import Blueprint, redirect, render_template, abort, request, url_for
 from models.Post import Post
 from models.Group import Group
@@ -13,6 +14,99 @@ controller = Blueprint("posts", __name__, template_folder="templates")
 def index():
     posts = Post.all()
     return render_template("posts/index.html", posts=posts)
+
+
+@controller.route("/<int:id>/edit", methods=["GET", "POST"])
+def show_edit_page(id):
+    # check if _method is set in the form and the value is PUT
+    if request.method == "POST" and request.form["_method"].upper() == "PUT":
+        print(
+            f"Request method is {request.method} and _method is {request.form['_method']}"
+        )
+        return update_post(request, id)
+
+    post = Post.find(id)
+    return render_template("posts/edit.html", post=post, groups=Group.all())
+
+
+def update_post(request, id):
+    # check for the required fields
+    required_fields = ["title", "start_date", "end_date", "post_type"]
+
+    for field in required_fields:
+        if field not in request.form:
+            print(f"Required field {field} is missing")
+            return abort(400, f"Required field {field} is missing")
+
+    post = Post.find(id)
+
+    if post is None:
+        return abort(404, f"Post with id {request.form['id']} not found")
+
+    # create an attributes dictionary with the new values
+    attributes = {
+        "title": request.form["title"],
+        "type": "",
+        "start_date": request.form["start_date"],
+        "end_date": request.form["end_date"],
+    }
+
+    # check what attributes have changed
+    updates = {}
+
+    for key in attributes:
+        if attributes[key] != getattr(post, key):
+            updates[key] = attributes[key]
+
+    removePreviousImage = False
+
+    # check to see if post type changed from image
+    if post.type == "IMAGE" and request.form["post_type"] != "image":
+        updates["image_link"] = None
+        os.remove(post.image_link)
+
+    # available post types image,html,link
+    if request.form["post_type"] == "image":
+        updates["type"] = "IMAGE"
+
+        newimage = request.files["image"]
+
+        # if image is not provided, only update the other fields
+        if newimage.filename == "":
+            pass
+        else:
+            updates["image_link"] = f"static/images/{request.files['image'].filename}"
+            if post.type == "IMAGE":
+                removePreviousImage = True
+
+            # store the image in the static/images folder
+            image = request.files["image"]
+            image.save(f"static/images/{image.filename}")
+
+        if removePreviousImage:
+            # delete the previous image
+            if "image" in request.files:
+                os.remove(post.image_link)
+
+        # update the post
+        post.updates(updates)
+
+    elif request.form["post_type"] == "html":
+        updates["type"] = "HTML"
+        updates["html_content"] = request.form["htmlContent"]
+        post.updates(updates)
+
+    elif request.form["post_type"] == "link":
+        updates["type"] = "WEB_LINK"
+        updates["web_link"] = request.form["webLink"]
+        post.updates(updates)
+
+    # save the post groups
+    if "post_groups" in request.form:
+        post.save_groups(request.form["post_groups"])
+
+    # redirect to the post create page with a success message
+    return redirect(url_for("posts.list_posts"))
 
 
 @controller.route("/new", methods=["POST"])
