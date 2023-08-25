@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, Response, jsonify
 from flask_login import LoginManager
+from flask_bcrypt import Bcrypt
 
 from dotenv import dotenv_values
 
@@ -14,6 +15,8 @@ app = Flask(__name__, static_url_path="/static")
 app.secret_key = config["SECRET_KEY"]
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+bcrypt = Bcrypt(app)
 
 ## STEP 3: Get Database Connection
 from database.database import MYSQL

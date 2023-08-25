@@ -1,7 +1,5 @@
 from datetime import datetime
 from database.database import MYSQL
-import bcrypt
-
 
 connection = MYSQL().get_connection()
 
@@ -65,7 +63,6 @@ class User:
             return count
 
     def insert(self):
-        hashed_password = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
         with connection.cursor() as cursor:
             sql = "INSERT INTO users (name, email, password, type, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s)"
 
@@ -74,7 +71,7 @@ class User:
                 (
                     self.name,
                     self.email,
-                    hashed_password,
+                    self.password,
                     self.type,
                     self.created_at,
                     self.updated_at,
@@ -83,3 +80,15 @@ class User:
             connection.commit()
             self.id = cursor.lastrowid
         return self
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)

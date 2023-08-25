@@ -1,4 +1,5 @@
-import bcrypt
+from flask_login import login_user
+from app import bcrypt
 from flask import Blueprint, request, flash, redirect, render_template, url_for
 
 from models.User import User
@@ -11,6 +12,47 @@ controller = Blueprint(
 @controller.route("/login", methods=["GET"])
 def login():
     return render_template("authentication/login.html")
+
+
+@controller.route("/register", methods=["GET"])
+def register():
+    return render_template("authentication/register.html")
+
+
+@controller.route("/register", methods=["POST"])
+def register_post():
+    required_fields = ["name", "username", "password", "password_confirmation"]
+
+    for field in required_fields:
+        if field not in request.form:
+            flash(f"Required field {field} is missing", "error")
+            return redirect(url_for("authentication_controller.register"))
+
+    name = request.form["name"]
+    username = request.form["username"]
+    password = request.form["password"]
+    password_confirmation = request.form["password_confirmation"]
+
+    if password != password_confirmation:
+        flash("Passwords do not match", "error")
+        return redirect(url_for("authentication_controller.register"))
+
+    user = User().find(username)
+
+    if user != None:
+        flash("Username already exists", "error")
+        return redirect(url_for("authentication_controller.register"))
+
+    pw_hash = bcrypt.generate_password_hash(password)
+
+    user = User(email=username, password=pw_hash, name=name)
+    user.insert()
+
+    login_user(user)
+
+    flash("Account created successfully", "success")
+
+    return render_template("authentication/register.html")
 
 
 @controller.route("/login", methods=["POST"])
