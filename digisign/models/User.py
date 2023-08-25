@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from database.database import MYSQL
 import bcrypt
@@ -16,7 +15,6 @@ class User:
     created_at = None
     updated_at = None
 
-    
     def __init__(
         self,
         id=None,
@@ -25,7 +23,7 @@ class User:
         password=None,
         type=None,
         created_at=None,
-        updated_at=None
+        updated_at=None,
     ) -> None:
         self.id = id
         self.name = name
@@ -47,7 +45,7 @@ class User:
             result = cursor.fetchall()
             return result
 
-    def find(self,email):
+    def find(self, email):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM users WHERE email=%s"
             cursor.execute(sql, (email))
@@ -55,22 +53,22 @@ class User:
             print(result)
             if result:
                 return result
-            else: 
-                return "not found"
+            else:
+                return None
 
     def noLines():
         with connection.cursor() as cursor:
             sql = "SELECT COUNT(email) from USERS"
             cursor.execute(sql)
             result = cursor.fetchone()
-            count = result['COUNT(email)']
+            count = result["COUNT(email)"]
             return count
 
     def insert(self):
         hashed_password = bcrypt.hashpw(self.password.encode("utf-8"), bcrypt.gensalt())
         with connection.cursor() as cursor:
             sql = "INSERT INTO users (name, email, password, type, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s)"
-            
+
             cursor.execute(
                 sql,
                 (
@@ -79,10 +77,9 @@ class User:
                     hashed_password,
                     self.type,
                     self.created_at,
-                    self.updated_at
+                    self.updated_at,
                 ),
             )
             connection.commit()
             self.id = cursor.lastrowid
         return self
-

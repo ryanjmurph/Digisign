@@ -37,6 +37,25 @@
         </div>
     </nav>
     <div class="container">
+        <!-- Show flashed messages if present -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category,message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else 'primary' }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Show error message if present -->
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Content inserted from inheriting classes -->
         {% block content %}{% endblock %}
     </div>
 </body>
