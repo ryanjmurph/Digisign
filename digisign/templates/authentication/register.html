@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<div class="row">
+    <div class="col"></div>
+    <div class="col">
+        <form action="" class="row d-grid gap-3" method="POST">
+            <div class="col-auto">
+                <div class="form-control pb-4 mb-4">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control max" id="name" name="name" placeholder="Luke Skywalker"
+                        required />
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control max" id="username" name="username"
+                        placeholder="padiwan@starwars.com" required />
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="iamateapot"
+                        required />
+                    <label for="password" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="password" name="password_confirmation"
+                        placeholder="iamateapotithink" required />
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                </div>
+                <a href="{{ url_for('authentication_controller.login') }}" class="">I already have an
+                    account</a>
+            </div>
+
+        </form>
+    </div>
+    <div class="col"></div>
+
+
+</div>
+
+{% endblock %}

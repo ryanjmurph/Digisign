@@ -44,11 +44,6 @@ class Post:
         self.web_link = webLink
         self.state = state
 
-        # log the details of the post
-        # print(
-        #     f"Post: {self.title}, Type: {self.type}, Start Date: {self.start_date}, End Date: {self.end_date}, Image Link: {self.image_link}, HTML Content: {self.html_content}, Web Link: {self.web_link}, State: {self.state}"
-        # )
-
     def createInstance(self, result):
         # parse the row into an instance of the post model
         for key in result:
