@@ -1,4 +1,4 @@
-from flask_login import login_user
+from flask_login import login_user, logout_user
 from app import bcrypt
 from flask import Blueprint, request, flash, redirect, render_template, url_for
 
@@ -15,8 +15,14 @@ def login():
 
 
 @controller.route("/register", methods=["GET"])
-def register():
+def logout():
     return render_template("authentication/register.html")
+
+
+@controller.route("/logout", methods=["GET"])
+def register():
+    logout_user()
+    return redirect(url_for("authentication_controller.login"))
 
 
 @controller.route("/register", methods=["POST"])
@@ -46,6 +52,10 @@ def register_post():
     pw_hash = bcrypt.generate_password_hash(password)
 
     user = User(email=username, password=pw_hash, name=name)
+
+    #  print the class name of the user object
+    print(type(user))
+
     user.insert()
 
     login_user(user)
@@ -70,7 +80,7 @@ def login_post():
     user = User().find(username)
 
     if user == None:
-        flash("The username or password you entered is incorrect", "error")
+        flash("The username or password you entered is incorrect [username]", "error")
         return redirect(url_for("authentication_controller.login"))
 
     pw_hash = bcrypt.generate_password_hash(password)
@@ -79,5 +89,7 @@ def login_post():
     if not password_correct:
         flash("The username or password you entered is incorrect", "error")
         return redirect(url_for("authentication_controller.login"))
+    
+    login_user(user,remember=True)
 
-    return redirect(url_for("home_controller.index"))
+    return redirect(url_for("home_controller.dashboard"))

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, Response, jsonify
+from flask import Flask, flash, render_template, request, redirect, Response, jsonify, url_for
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 
@@ -26,7 +26,12 @@ connection = MYSQL().get_connection()
 
 @login_manager.user_loader
 def load_user(user_id=""):
-    return User.find(user_id)
+    return User().findById(user_id)
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    flash("You must be logged in to view that page.", "error")
+    return redirect(url_for("authentication_controller.login"))
 
 
 if __name__ == "__main__":

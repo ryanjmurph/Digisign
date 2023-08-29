@@ -4,6 +4,7 @@
 
 import os
 from flask import Blueprint, redirect, render_template, abort, request, url_for
+from flask_login import login_required
 from models.Post import Post
 from models.Group import Group
 
@@ -20,9 +21,6 @@ def index():
 def show_edit_page(id):
     # check if _method is set in the form and the value is PUT
     if request.method == "POST" and request.form["_method"].upper() == "PUT":
-        print(
-            f"Request method is {request.method} and _method is {request.form['_method']}"
-        )
         return update_post(request, id)
 
     post = Post.find(id)
@@ -195,7 +193,6 @@ def approve_action(id):
     if not post is None:
         updated_state = "APPROVED" if action == "APPROVE" else "WITHDRAWN"
         updates = {"state": updated_state}
-        print(f"Post ID {id} updated to {updates} successfully")
         post.updates(updates)
 
     else:
@@ -206,6 +203,7 @@ def approve_action(id):
 
 
 @controller.route("/admin-view", methods=["GET"])
+@login_required
 def list_posts():
     # check if filter is set in the query string
     activeFilters = ""

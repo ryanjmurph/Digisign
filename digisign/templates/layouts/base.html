@@ -55,6 +55,12 @@
         </div>
         {% endif %}
 
+        {% if current_user %}
+        <div>
+            Hi {{ current_user.name }}!
+        </div>
+        {% endif %}
+
         <!-- Content inserted from inheriting classes -->
         {% block content %}{% endblock %}
     </div>
