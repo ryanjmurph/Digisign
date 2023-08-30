@@ -2,11 +2,10 @@ from datetime import datetime
 
 from flask_login import UserMixin
 from database.database import MYSQL
+from models.Queries import Query
 
-connection = MYSQL().get_connection()
 
-
-class User:
+class User(Query):
     id = None
     name = None
     email = None
@@ -14,6 +13,8 @@ class User:
     type = None
     created_at = None
     updated_at = None
+
+    connection = MYSQL().get_connection()
 
     def __init__(
         self,
@@ -33,7 +34,8 @@ class User:
         self.created_at = created_at
         self.updated_at = updated_at
 
-    def all():
+    def all(self):
+        connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
             sql = "SELECT * FROM users"
             cursor.execute(sql)
@@ -41,6 +43,7 @@ class User:
             return result
 
     def find(self, email):
+        connection = self.getDatabaseConnection()
         print(f"Trying to find user with email {email}")
         with connection.cursor() as cursor:
             sql = "SELECT * FROM users WHERE email=%s"
@@ -52,7 +55,7 @@ class User:
                 return None
 
     def findById(self, id):
-        print(f"Trying to find user with id {id}")
+        connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
             sql = "SELECT * FROM users WHERE id=%s"
             cursor.execute(sql, (id))
@@ -63,6 +66,7 @@ class User:
                 return None
 
     def noLines():
+        # connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
             sql = "SELECT COUNT(email) from USERS"
             cursor.execute(sql)
@@ -71,6 +75,7 @@ class User:
             return count
 
     def insert(self):
+        connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
             sql = "INSERT INTO users (name, email, password, type, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s)"
 
@@ -113,3 +118,6 @@ class User:
 
     def get_id(self):
         return str(self.id)
+
+    def get_type(self):
+        return str(self.type)

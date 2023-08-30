@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<a href="/posts/new" class="btn btn-primary">Create New User</a>
+
+<!-- Filter by drop down to allow searh for the table on the backend, it should have 3 columns: filter by (options include id, groups, active and date), the filter value and finally the current filters applied -->
+<div class="card my-4">
+    <form action="" method="GET">
+        <div class="card-body">
+            <div class="row w-50 mb-3">
+                <div class="col">
+                    <label for="filterBy" class="form-label">Filter By</label>
+                    <select class="form-select" id="filterBy" name="filter" required>
+                        <option value="" selected>Choose...</option>
+                        <option value="id">id</option>
+                        <option value="type">type</option>
+                        <option value="username">username</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="filterValue" class="form-label">Filter Value</label>
+                    <input type="text" class="form-control" id="filterValue" name="search" required>
+                </div>
+                <div class="col">
+                    <label for="currentFilters" class="form-label">Current Filters</label>
+                    <input type="text" class="form-control" id="currentFilters" name="currentFilters"
+                        value="{{activeFilters}}" disabled>
+                </div>
+
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">User ID</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Created At</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for user in users %}
+                <tr>
+                    <th scope="row">{{user.id}}</th>
+                    <td>{{user.email}}
+                        {% if user.email == current_user.email %}
+                        <span class="badge bg-primary">You</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.type == 'ADMINISTRATOR' %}
+                        <p class="text-success text-decoration-none">
+                            <strong>{{user.type}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if user.type == 'USER' %}
+                        <p class="text-primary">
+                            <strong>{{user.type}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if user.type == 'DEVICE' %}
+                        <p class="text-secondary">
+                            <strong>{{user.type}}</strong>
+                        </p>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{user.created_at}}
+                    </td>
+                    <td>
+                        <div class="flex text-decoration-none">
+                            <a href="/users/{{user.id}}/edit" class="btn btn-secondary">Edit</a>
+                            <form action="/users/{{user.id}}/delete" method="POST">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </div>
+
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

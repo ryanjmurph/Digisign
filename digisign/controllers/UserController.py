@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, flash, render_template, request, redirect, url_for
+from models.Post import Post
 from models.User import User
 from datetime import datetime
 import bcrypt
@@ -6,6 +7,7 @@ import bcrypt
 controller = Blueprint("users", __name__, template_folder="templates")
 
 
+# TODO : Legacy, to decomission
 @controller.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -14,8 +16,10 @@ def login():
 
         user = User()
         result = user.find(login_email)
-        
-        if result and bcrypt.checkpw(login_password.encode("utf-8"), result["password"].encode("utf-8")):
+
+        if result and bcrypt.checkpw(
+            login_password.encode("utf-8"), result["password"].encode("utf-8")
+        ):
             return "Login successful"
         else:
             error_message = "Invalid email or password"
@@ -24,7 +28,7 @@ def login():
         return render_template("login.html")
 
 
-
+# TODO : Legacy, to decomission
 @controller.route("/new_user", methods=["GET", "POST"])
 def new_user():
     if request.method == "POST":
@@ -38,7 +42,7 @@ def new_user():
             password=password,
             type="USER",
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
 
         if new_user.find(email) == "not found":
@@ -51,3 +55,44 @@ def new_user():
         return render_template("create_account.html")
 
 
+@controller.route("/admin-view", methods=["GET"])
+def list_users():
+    user = User()
+    users = user.all()
+    return render_template("users/list.html", users=users)
+
+
+@controller.route("/<int:id>/edit", methods=["GET"])
+def view_user(id):
+    user = User().findById(id)
+
+    posts = []
+    print(f"User type: {user.get_type()}")
+    if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
+        posts = Post().where("created_by", id).get()
+
+    return render_template("users/edit.html", user=user, posts=posts)
+
+
+@controller.route("/<int:id>/update", methods=["POST"])
+def update_user(id):
+    user = User().findById(id)
+
+    fields_changing = {}
+
+    fields_available = ["name", "email", "type", "password"]
+    for field in fields_available:
+        if request.form[field]:
+            # check the attribute in the user object. If it is different from the one in the form, update it
+            if getattr(user, field) != request.form[field]:
+                fields_changing[field] = request.form[field]
+
+    if fields_changing:
+        try:
+            user.update(fields_changing)
+        except Exception as e:
+            flash("An error occured, kindly try again", "error")
+            return redirect(url_for("users.view_user", id=id))
+
+    flash("User updated successfully", "success")
+    return redirect(url_for("users.view_user", id=id))
