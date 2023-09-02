@@ -15,12 +15,12 @@ def login():
 
 
 @controller.route("/register", methods=["GET"])
-def logout():
+def register():
     return render_template("authentication/register.html")
 
 
 @controller.route("/logout", methods=["GET"])
-def register():
+def logout():
     logout_user()
     return redirect(url_for("authentication_controller.login"))
 
