@@ -10,6 +10,7 @@ class User(Query):
     name = None
     email = None
     password = None
+    state = None
     type = None
     created_at = None
     updated_at = None
@@ -99,6 +100,7 @@ class User(Query):
         self.name = user["name"]
         self.email = user["email"]
         self.password = user["password"]
+        self.state = user["state"]
         self.type = user["type"]
         self.created_at = user["created_at"]
         self.updated_at = user["updated_at"]

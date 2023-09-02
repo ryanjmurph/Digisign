@@ -80,7 +80,7 @@ def update_user(id):
 
     fields_changing = {}
 
-    fields_available = ["name", "email", "type", "password"]
+    fields_available = ["name", "email", "type", "password","state"]
     for field in fields_available:
         if request.form[field]:
             # check the attribute in the user object. If it is different from the one in the form, update it

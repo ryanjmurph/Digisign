@@ -40,6 +40,7 @@
                 <tr>
                     <th scope="col">User ID</th>
                     <th scope="col">Username</th>
+                    <th scope="col">State</th>
                     <th scope="col">Type</th>
                     <th scope="col">Created At</th>
                     <th scope="col">Actions</th>
@@ -53,6 +54,13 @@
                     <td>{{user.email}}
                         {% if user.email == current_user.email %}
                         <span class="badge bg-primary">You</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.state == 'ACTIVE' %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-warning">{{user.state}}</span>
                         {% endif %}
                     </td>
                     <td>
