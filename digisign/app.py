@@ -1,4 +1,13 @@
-from flask import Flask, flash, render_template, request, redirect, Response, jsonify, url_for
+from flask import (
+    Flask,
+    flash,
+    render_template,
+    request,
+    redirect,
+    Response,
+    jsonify,
+    url_for,
+)
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 
@@ -27,6 +36,7 @@ connection = MYSQL().get_connection()
 @login_manager.user_loader
 def load_user(user_id=""):
     return User().findById(user_id)
+
 
 @login_manager.unauthorized_handler
 def unauthorized():

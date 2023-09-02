@@ -51,7 +51,7 @@ def register_post():
 
     pw_hash = bcrypt.generate_password_hash(password)
 
-    user = User(email=username, password=pw_hash, name=name)
+    user = User(email=username, password=pw_hash, name=name, type="USER",state="APPROVAL_REQUIRED")
 
     #  print the class name of the user object
     print(type(user))
@@ -81,6 +81,14 @@ def login_post():
 
     if user == None:
         flash("The username or password you entered is incorrect [username]", "error")
+        return redirect(url_for("authentication_controller.login"))
+    
+    if user.get_state() == "APPROVAL_REQUIRED":
+        flash("Your account is not approved yet", "error")
+        return redirect(url_for("authentication_controller.login"))
+    
+    if user.get_state() == "INACTIVE" or user.get_state() == "DELETED":
+        flash("Your account is not active. Kindly reach out to an administrator", "error")
         return redirect(url_for("authentication_controller.login"))
 
     pw_hash = bcrypt.generate_password_hash(password)

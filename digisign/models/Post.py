@@ -4,11 +4,12 @@
 
 from datetime import datetime
 from database.database import MYSQL
+from models.Queries import Query
 
 connection = MYSQL().get_connection()
 
 
-class Post:
+class Post(Query):
     id = None
     title = None
     type = None
@@ -21,6 +22,8 @@ class Post:
     created_by = None
     created_at = None
     updated_at = None
+
+    connection = MYSQL().get_connection()
 
     def __init__(
         self,

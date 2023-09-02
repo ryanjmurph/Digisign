@@ -11,9 +11,17 @@ config = dotenv_values(".env")  # read the database credentials from .env file
 
 class MYSQL:
     connection = None
+    _instance = None
 
     def __init__(self) -> None:
-        self.connect()
+        self.get_connection()
+
+    def __new__(cls):
+        if cls._instance is None:
+            print("Creating new instance")
+            cls._instance = super().__new__(cls)
+            cls._instance.connect()
+        return cls._instance
 
     def connect(self):
         try:
@@ -31,6 +39,8 @@ class MYSQL:
             sys.exit()
 
         print("SUCCESS: Connection to database successful.")
+        # print the class calling this method
+        print(self.__class__.__name__)
         self.connection = connection
 
     def close(self):
@@ -39,6 +49,7 @@ class MYSQL:
 
     def get_connection(self):
         if self.connection == None:
+            print("No connection found, creating new connection")
             self.connect()
 
         return self.connection
