@@ -13,6 +13,7 @@ class Group:
     id = None
     name = None
     description = None
+    moderation_required = False
     created_at = None
     updated_at = None
 
