@@ -28,6 +28,63 @@ class Query(object):
     def addLimit(self, limit):
         self.limit_clause = f"LIMIT {limit}"
         return self
+    
+    def getCasts(self):
+        casts = getattr(self, "casts", {})
+        return casts
+    
+    def isAttributeCastable(self, casts,attribute):
+        return attribute in casts.keys()
+    
+    def castAttribute(self, casts,attribute,value):
+        if self.isAttributeCastable(casts,attribute):
+            if casts[attribute] == "int":
+                return int(value)
+            elif casts[attribute] == "float":
+                return float(value)
+            elif casts[attribute] == "bool":
+                return bool(value)
+                if value == False:
+                    return 0
+                else:
+                    return 1
+            elif casts[attribute] == "string":
+                return str(value)
+            else:
+                return value
+        else:
+            return value
+
+    
+    def save(self):
+        connection = self.getDatabaseConnection()
+        casts = self.getCasts()
+
+        sql = f"INSERT INTO {self.getTableName()} ("
+        for key in self.__dict__:
+            if key == "id":
+                continue
+            sql += f"{key}, "
+        sql = sql[:-2]
+        sql += ") VALUES ("
+        for key in self.__dict__:
+            if key == "id":
+                continue
+            if self.isAttributeCastable(casts,key):
+                print(f"Key: {key}")
+                sql += f"{self.castAttribute(casts,key,self.__dict__[key])}, "
+            else:
+                sql += f"'{self.__dict__[key]}', "
+        sql = sql[:-2]
+        sql += ")"
+
+        print(f"SQL: {sql}")
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            connection.commit()
+
+        return self.find(connection.insert_id())
 
     def getDatabaseConnection(self):
         # check if connection is defined in the child class
@@ -36,6 +93,18 @@ class Query(object):
             return self.connection
 
         raise Exception("Database connection not found in the Model being extended")
+    
+    def find(self, id):
+        connection = self.getDatabaseConnection()
+
+        sql = f"SELECT * FROM {self.getTableName()} WHERE id = {id}"
+
+        print(f"SQL: {sql}")
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            return result
 
     def get(self):
         connection = self.getDatabaseConnection()

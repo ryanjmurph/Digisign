@@ -28,4 +28,5 @@ def create_post():
     name = request.form["name"]
     
     group = Group(name=name,moderation_required=moderation_required)
+    group.save()
     
