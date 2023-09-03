@@ -46,13 +46,14 @@ def unauthorized():
 
 if __name__ == "__main__":
     ## STEP 4: Import Controllers
-    from controllers import AuthenticationController, HomeController, PostsController,GroupsController
+    from controllers import AuthenticationController, HomeController, PostsController,GroupsController,UserController
 
     ## Step 4: Register Blueprints
     app.register_blueprint(PostsController.controller, url_prefix="/posts")
     app.register_blueprint(HomeController.controller, url_prefix="/")
     app.register_blueprint(AuthenticationController.controller, url_prefix="/auth")
     app.register_blueprint(GroupsController.controller, url_prefix="/groups")
+    app.register_blueprint(UserController.controller, url_prefix="/users")
     print(
         "Starting Python Flask Server Digisign. The webapp will run on port "
         + config["FLASK_PORT"]
