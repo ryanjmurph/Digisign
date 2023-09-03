@@ -29,4 +29,18 @@ def create_post():
     
     group = Group(name=name,moderation_required=moderation_required)
     group.save()
+
+    return redirect(url_for("groups.index"))
+
+@controller.route("/admin-view", methods=["GET"])
+@login_required
+def index():
+    groups = Group().all()
+
+    for group in groups:
+        # get count of posts attached to the group
+        count = Group().getPostsCount(group["id"])
+        group["posts_count"] = count
+
+    return render_template("groups/list.html", groups=groups)
     

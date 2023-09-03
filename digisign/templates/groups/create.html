@@ -1,7 +1,15 @@
 {% extends "layouts/base.html" %}
 {% block content %}
 
-<div class="card">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/groups/admin-view">View Groups</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Create Group </li>
+    </ol>
+</nav>
+
+<div class="card mt-3">
     <div class="card-body">
         <form action="" method="post">
             <div class="mb-3">

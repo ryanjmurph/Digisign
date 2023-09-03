@@ -32,3 +32,10 @@ class Group(Query):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
+        
+    def getPostsCount(self,group_id):
+        with self.connection.cursor() as cursor:
+            sql = f"SELECT COUNT(*) as count FROM post_groups_subscription WHERE group_id = {group_id}"
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            return result["count"]
