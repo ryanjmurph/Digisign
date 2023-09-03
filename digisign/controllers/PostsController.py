@@ -173,7 +173,7 @@ def create():
 
 @controller.route("/new", methods=["GET"])
 def new():
-    groups = Group.all()
+    groups = Group().all()
     # return the form in templates/posts/create.html
     return render_template("posts/create.html", groups=groups)
 

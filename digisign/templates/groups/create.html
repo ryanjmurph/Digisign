@@ -1,0 +1,70 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/groups/admin-view">View Groups</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Create Group </li>
+    </ol>
+</nav>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <form action="" method="post">
+            <div class="mb-3">
+                <label for="name" class="form-label"> <strong>Name of the group</strong> </label>
+                <input type="text" class="form-control" id="name" name="name" required />
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label block" > <strong>Moderation on Posts Required</strong> </label><div></div>
+                <input type="checkbox" class="form-check-input" id="moderation" name="moderation_required" />
+            </div>
+            <div class="mb-3">
+                <label for="moderators" class="form-label" ><strong>Moderators for the group</strong>  </label>
+                <div class="row">
+                    <div class="row mb-2">
+                        <div class="col-auto">
+                            <label class="form-label">Search for user</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" placeholder="search by name / username">
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div>
+                            <label for="available_users" class="form-label">Available Users</label>
+                            <select class="form-control" name="available_users" id="available_users" multiple>
+                                <option value="1">User 1</option>
+                                <option value="2">User 2</option>
+                                <option value="3">User 3</option>
+                                <option value="4">User 4</option>
+                                <option value="5">User 5</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <button type="button" class="btn mb-1 btn-primary">Add >> </button>
+                        <button type="button" class="btn btn-danger">Remove << </button>
+                    </div>
+                    <div class="col-5">
+                        <div>
+                            <label for="available_moderators" class="form-label">Available Moderators</label>
+                            <select class="form-control" name="available_moderators" id="available_moderators" multiple>
+                                <option value="1">User 1</option>
+                                <option value="2">User 2</option>
+                                <option value="3">User 3</option>
+                                <option value="4">User 4</option>
+                                <option value="5">User 5</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Create Group</button>
+        </form>
+    </div>
+</div>
+
+{%endblock%}
