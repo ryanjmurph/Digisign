@@ -2,47 +2,88 @@
 <html>
 <head>
     <title>Image Display</title>
+    <style>
+        .centered-image {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            padding: 20px;
+        }
+
+        #imageDisplay {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #websiteIframe {
+            width: 80vw;
+            height: 60vh;
+            border: none;
+        }
+
+        #qrCodeImage {
+            max-width: 100%;
+            max-height: 60vh; 
+        }
+    </style>
 </head>
 <body>
-    <img id="imageDisplay" src="" alt="Displayed Image">
+    <div class="centered-image">
+        <iframe id="websiteIframe" src="about:blank"></iframe>
+        <img id="imageDisplay" src="" alt="">
+    </div>
     <script>
         var imageElement = document.getElementById('imageDisplay');
-        var amount = '{{ number }}'
+        var websiteIframe = document.getElementById('websiteIframe');
+        var filenames = {{ filenames | tojson | safe }}; // Gets the filenames from flask
         var currentImageIndex = 0;
-        var imageIds = []
-        console.log(amount)
 
-        for (let i = 1; i< amount+1; i++) {
-            imageIds.push(i)
+        function displayNextImage() {
+            var imageName = filenames[currentImageIndex];
+            var imageUrl = '/static/images/' + imageName;
+            imageElement.src = '';
+            websiteIframe.src = 'about:blank';// make both of these blank after a new image
+
+            if (imageName.includes('qr')) {
+                var websiteName = imageName.split('qr.jpg')[0];
+                websiteIframe.src = 'https://' + websiteName;
+
+                var qrCodeImage = document.createElement('img'); // create qr code image
+                qrCodeImage.id = 'qrCodeImage';
+                qrCodeImage.src = imageUrl;
+
+                var container = document.querySelector('.centered-image'); 
+
+                
+                var existingQrCodeImage = document.getElementById('qrCodeImage');
+                if (existingQrCodeImage) {
+                    container.removeChild(existingQrCodeImage);// remove the QR code if it exixts already
+                }
+
+                container.appendChild(qrCodeImage);
+            } else {
+                // Hide the QR code image if it's not a QR code
+                var qrCodeImage = document.getElementById('qrCodeImage');
+                if (qrCodeImage) {
+                    qrCodeImage.style.display = 'none'; // hide the qr code after displayed
+                }
+
+                imageElement.src = imageUrl; 
             }
-        
-            async function displayNextImage() {
-    var imageId = imageIds[currentImageIndex];
-    
-    try {
-        // Get the image from the server
-        var response = await fetch('/' + imageId);
-        var blob = await response.blob();
-
-        // Create a URL for the image
-        var imageUrl = URL.createObjectURL(blob);
-        
-        // Display the image on the page
-        imageElement.src = imageUrl;
-
-        // Move to the next image in the sequence
-        currentImageIndex = (currentImageIndex + 1) % amount; // Cycle through images
-    } catch (error) {
-        console.error('Oops! Something went wrong:', error);
-    }
-}
+            
+            if(imageName.includes('.txt')){ // handles what happens if the user doesnt want to add a QR code
+                var websiteName = imageName.split('.txt')[0];
+                websiteIframe.src = 'https://' + websiteName; 
+            }
 
 
-        // Initial image display
+            currentImageIndex = (currentImageIndex + 1) % filenames.length; // next file
+        }
+
         displayNextImage();
-
-        // Set up the interval to switch images every 10 seconds
-        setInterval(displayNextImage, 3000); // 10000 milliseconds = 10 seconds
+        setInterval(displayNextImage, 10000); // change to change the time it takes for images to cycle
     </script>
 </body>
 </html>

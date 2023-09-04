@@ -149,17 +149,27 @@ def create():
         post.insert()
 
     elif request.form["post_type"] == "link":
-        # create the post
+    # create the post
         post = Post(
-            title=request.form["title"],
-            type="WEB_LINK",
-            startDate=request.form["start_date"],
-            endDate=request.form["end_date"],
-            webLink=request.form["webLink"],
-            state="DRAFT",
+        title=request.form["title"],
+        type="WEB_LINK",
+        startDate=request.form["start_date"],
+        endDate=request.form["end_date"],
+        webLink=request.form["web_link"],  # Update this line
+        state="DRAFT",
         )
-        # save the post
+        # Check if the "Add QR code" checkbox is checked
+        add_qr_code = request.form.get("add_qr_code")
+        if add_qr_code:
+            webLink=request.form["web_link"]
+            post.createQR(webLink,True)
+
+        else:
+            webLink=request.form["web_link"]
+            post.createQR(webLink,False)
+
         post.insert()
+
 
     # save the post groups
     if "post_groups" in request.form:
@@ -230,3 +240,14 @@ def list_posts():
     return render_template(
         "posts/admin/list.html", posts=posts, activeFilters=activeFilters
     )
+
+@controller.route("/display")
+def display():
+    folder_path = "static/images"  # Replace this with the path to your folder
+
+
+    files_and_dirs = os.listdir(folder_path)
+    filenames = [file for file in files_and_dirs if os.path.isfile(os.path.join(folder_path, file))]
+    print(filenames)
+    return render_template("display.html", filenames = filenames)
+    
