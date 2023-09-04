@@ -1,0 +1,45 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+
+
+<div>
+    <h1>Post Groups</h1>
+    <p>Post Groups are the groups that certain devices can be a part of. When you add a post to these groups, any device that is a part of that group will be a candiate for diaplying the post</p>
+
+    <a href="/groups/create" class="btn btn-primary mb-2">Create New Group</a>
+
+</div>
+
+
+
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Group Name</th>
+                    <th>Group Description</th>
+                    <th>Active Posts</th>
+                    <th>Active Posts</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in groups %}
+                <tr>
+                    <td>{{ group.name }}</td>
+                    <!-- <td>{{ group.description }}</td> -->
+                    <td> Dummy Data </td>
+                    <td> Dummy Data </td>
+                    <!-- <td>{{ group.posts }}</td> -->
+                    <td>{{ group.posts_count }}</td>
+                    <td>
+                        <a href="#" class="btn btn-primary">View</a>
+                    </td>
+                {% endfor %}
+            </tbody>
+    </div>
+</div>
+{% endblock %}

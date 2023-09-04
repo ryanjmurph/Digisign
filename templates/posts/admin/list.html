@@ -1,0 +1,166 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<!-- Styled button to direct to create new post -->
+<a href="/posts/new" class="btn btn-primary">Create New Post</a>
+
+<!-- Filter by drop down to allow searh for the table on the backend, it should have 3 columns: filter by (options include id, groups, active and date), the filter value and finally the current filters applied -->
+<div class="card my-4">
+    <form action="" method="GET">
+        <div class="card-body">
+            <div class="row w-50 mb-3">
+                <div class="col">
+                    <label for="filterBy" class="form-label">Filter By</label>
+                    <select class="form-select" id="filterBy" name="filter" required>
+                        <option value="" selected>Choose...</option>
+                        <option value="id">id</option>
+                        <option value="state">state</option>
+                        <option value="title">title</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="filterValue" class="form-label">Filter Value</label>
+                    <input type="text" class="form-control" id="filterValue" name="search" required>
+                </div>
+                <div class="col">
+                    <label for="currentFilters" class="form-label">Current Filters</label>
+                    <input type="text" class="form-control" id="currentFilters" name="currentFilters"
+                        value="{{activeFilters}}" disabled>
+                </div>
+
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Post ID</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">State</th>
+                    <th scope="col">Submitted By</th>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for post in posts %}
+                <tr>
+                    <th scope="row">{{post.id}}</th>
+                    <td>{{post.title}}</td>
+                    <td>
+
+                        <!-- if type == TEXT display card-text icon -->
+                        {% if post.type == 'HTML' %}
+                        <p class="text-success text-decoration-none">
+                            {{post.type}}
+                            <i class="bi bi-card-text"></i>
+                        </p>
+                        {% endif %}
+
+                        <!-- if type == IMAGE display card-image icon -->
+                        {% if post.type == 'IMAGE' %}
+                        <p class="text-decoration-none text-secondary">
+                            {{post.type}}
+                            <i class="bi bi-card-image"></i>
+                        </p>
+                        {% endif %}
+
+                        <!-- if type == WEB_LINK display URL icon -->
+                        {% if post.type == 'WEB_LINK' %}
+                        <p class="text-decoration-none text-primary">
+                            {{post.type}}
+                            <i class="bi bi-qr-code"></i>
+                        </p>
+
+                        {% endif %}
+
+
+
+                    </td>
+                    <td>
+                        {% if post.state == 'DRAFT' %}
+                        <p class="text-secondary">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if post.state == 'PENDING_APPROVAL' %}
+                        <p class="text-warning">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if post.state == 'APPROVED' %}
+                        <p class="text-success">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if post.state == 'WITHDRAWN' %}
+                        <p class="text-danger">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                    </td>
+                    <td>{{post.created_by}}</td>
+                    <td>{{post.start_date}}</td>
+                    <td>{{post.end_date}}</td>
+                    <td>
+                        <div class="flex text-decoration-none">
+
+
+                            {% if post.state == 'DRAFT' %}
+                            <a href="/posts/{{post.id}}/edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="/posts/{{post.id}}/delete" class="text-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% endif %}
+                            {% if post.state == 'APPROVED' %}
+                            <a href="/posts/{{post.id}}/edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="/posts/{{post.id}}/approve-action?action=WITHDRAW" class="text-warning">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </a>
+                            {% endif %}
+
+                            {% if post.state == 'WITHDRAWN' %}
+                            <a href="/posts/{{post.id}}/edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="/posts/{{post.id}}/approve-action?action=APPROVE" class="text-success">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </a>
+                            {% endif %}
+
+                            {% if post.state == 'PENDING_APPROVAL' %}
+                            <a href="/posts/{{post.id}}/edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="/posts/{{post.id}}/approve-action?action=APPROVE" class="text-success">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </a>
+                            <a href="/posts/{{post.id}}/approve-action?action=WITHDRAW" class="text-danger">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
