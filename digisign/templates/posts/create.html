@@ -70,6 +70,10 @@
         <label for="web-link" class="form-label">Web Link</label>
         <input type="text" class="form-control" id="web-link" name="web_link" />
       </div>
+      <div class="mb-3 form-check" id="qr-code-checkbox" style="display: none">
+        <input class="form-check-input" type="checkbox" id="add-qr-code" name="add_qr_code">
+        <label class="form-check-label" for="add-qr-code">Add QR code</label>
+      </div>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>
@@ -88,18 +92,21 @@
     document.getElementById("html-content-div").style.display = "none";
     document.getElementById("web-link-input").style.display = "none";
     document.getElementById("file-upload-div").style.display = "block";
+    document.getElementById("qr-code-checkbox").style.display = "none"; // Hide the checkbox
   }
 
   function postIsHTML() {
     document.getElementById("html-content-div").style.display = "block";
     document.getElementById("file-upload-div").style.display = "none";
     document.getElementById("web-link-input").style.display = "none";
+    document.getElementById("qr-code-checkbox").style.display = "none"; // Hide the checkbox
   }
 
   function postIsWebLink() {
     document.getElementById("html-content-div").style.display = "none";
     document.getElementById("file-upload-div").style.display = "none";
     document.getElementById("web-link-input").style.display = "block";
+    document.getElementById("qr-code-checkbox").style.display = "block"; // Show the checkbox
   }
 
   document
