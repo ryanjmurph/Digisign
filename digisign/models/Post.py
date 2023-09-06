@@ -5,6 +5,7 @@
 from datetime import datetime
 from database.database import MYSQL
 from models.Queries import Query
+import qrcode
 
 connection = MYSQL().get_connection()
 
@@ -168,3 +169,16 @@ class Post(Query):
             cursor.execute(sql, (end_date))
             result = cursor.fetchall()
             return result
+
+    @staticmethod
+    def createQR(webLink,code):
+        if code:
+            qr = qrcode.QRCode(version = 1, box_size = 5, border =1)
+            qr.add_data(webLink)
+            qr.make(fit = True)
+            img = qr.make_image()
+            name = webLink+"qr.jpg"
+            img.save("static/images/"+name)
+        else:
+            file = "static/images/"+webLink+".txt"
+            open(file, 'w').close()
