@@ -8,6 +8,7 @@ from flask_login import login_required
 from models.Post import Post
 from models.Group import Group
 
+
 controller = Blueprint("posts", __name__, template_folder="templates")
 
 
@@ -110,6 +111,11 @@ def update_post(request, id):
 @controller.route("/new", methods=["POST"])
 def create():
     # check for the required fields
+    if request.args.get("userID") != None:
+        userID = request.args.get("userID")
+
+    print(userID," is the userID")
+
     required_fields = ["title", "start_date", "end_date", "post_type"]
 
     for field in required_fields:
@@ -130,6 +136,7 @@ def create():
             endDate=request.form["end_date"],
             imageLink=f"static/images/{image.filename}",
             state="DRAFT",
+            created_by= userID
         )
 
         # save the post
@@ -144,6 +151,7 @@ def create():
             endDate=request.form["end_date"],
             htmlContent=request.form["htmlContent"],
             state="DRAFT",
+            created_by= userID
         )
         # save the post
         post.insert()
@@ -157,6 +165,7 @@ def create():
         endDate=request.form["end_date"],
         webLink=request.form["web_link"],  # Update this line
         state="DRAFT",
+        created_by= userID
         )
         # Check if the "Add QR code" checkbox is checked
         add_qr_code = request.form.get("add_qr_code")

@@ -43,4 +43,3 @@ def index():
         group["posts_count"] = count
 
     return render_template("groups/list.html", groups=groups)
-    

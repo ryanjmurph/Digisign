@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template
-
+from flask import Blueprint, render_template,request
+from models.Post import Post
 
 controller = Blueprint("home_controller", __name__, template_folder="templates")
 
@@ -11,4 +11,9 @@ def welcome_page():
 
 @controller.route("dashboard", methods=["GET"])
 def dashboard():
-    return render_template("home/dashboard.html")
+    userID = request.args.get("userID")
+    post = Post()
+    amount = post.noOfPosts(str(userID))
+    pendingAmount = post.noOfPendingPosts(str(userID))
+    print(amount)
+    return render_template("home/dashboard.html",userID = userID, amount = amount, pendingAmount = pendingAmount)

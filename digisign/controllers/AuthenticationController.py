@@ -78,6 +78,7 @@ def login_post():
     password = request.form["password"]
 
     user = User().find(username)
+    userID = user.get_id()
 
     if user == None:
         flash("The username or password you entered is incorrect [username]", "error")
@@ -100,4 +101,4 @@ def login_post():
     
     login_user(user,remember=True)
 
-    return redirect(url_for("home_controller.dashboard"))
+    return redirect(url_for("home_controller.dashboard", userID = userID))

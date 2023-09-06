@@ -34,6 +34,7 @@ class Post(Query):
         startDate=None,
         endDate=None,
         imageLink=None,
+        created_by = None,
         htmlContent=None,
         webLink=None,
         state=None,
@@ -44,6 +45,7 @@ class Post(Query):
         self.start_date = startDate
         self.end_date = endDate
         self.image_link = imageLink
+        self.created_by = created_by
         self.html_content = htmlContent
         self.web_link = webLink
         self.state = state
@@ -74,10 +76,35 @@ class Post(Query):
             result = cursor.fetchone()
             # return instance of the post
             return Post().createInstance(result)
+        
+    def noOfPosts(self, userID):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            sql = "SELECT COUNT(*) FROM posts WHERE created_by=%s"
+            cursor.execute(sql, (userID,))
+            result = cursor.fetchone()
+            if result is not None:
+                return result['COUNT(*)']
+            else:
+                return 0
+    
+    def noOfPendingPosts(self, userID):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            
+            sql = "SELECT COUNT(*) FROM posts WHERE created_by = %s AND state != 'APPROVED'"
+            cursor.execute(sql, (userID,))
+            result = cursor.fetchone()
+            if result is not None:
+                return result['COUNT(*)']
+            else:
+                return 0
+ 
+
 
     def insert(self):
         with connection.cursor() as cursor:
-            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)"
 
             cursor.execute(
                 sql,
@@ -90,6 +117,7 @@ class Post(Query):
                     self.html_content,
                     self.web_link,
                     self.state,
+                    self.created_by
                 ),
             )
             connection.commit()
