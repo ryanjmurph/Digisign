@@ -38,7 +38,8 @@ def create_post():
 def edit(id):
     group = Group().find(id)
     users = User().raw("SELECT id,name FROM users WHERE state = 'ACTIVE' AND type = 'USER'")
-    return render_template("groups/edit.html", group=group,users=users)
+    devices = User().raw("SELECT id,name FROM users WHERE type = 'DEVICE'")
+    return render_template("groups/edit.html", group=group,users=users,devices=devices)
 
 @controller.route("/edit/<id>", methods=["POST"])
 @login_required
