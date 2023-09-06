@@ -10,7 +10,7 @@ class Group(Query):
 
     id = None
     name = None
-    # description = None
+    description = None
     moderation_required = False
     created_at = None
     updated_at = None
