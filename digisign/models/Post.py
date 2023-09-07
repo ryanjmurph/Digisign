@@ -198,6 +198,8 @@ class Post(Query):
             result = cursor.fetchall()
             return result
 
+    
+
     @staticmethod
     def createQR(webLink,code):
         if code:

@@ -99,6 +99,11 @@ def login_post():
         flash("The username or password you entered is incorrect", "error")
         return redirect(url_for("authentication_controller.login"))
     
+    file_path = "user_id.txt"
+    
+    with open(file_path, "w") as file:
+        file.write(str(userID))
+    
     login_user(user,remember=True)
 
-    return redirect(url_for("home_controller.dashboard", userID = userID))
+    return redirect(url_for("home_controller.dashboard"))

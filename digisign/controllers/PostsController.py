@@ -111,10 +111,13 @@ def update_post(request, id):
 @controller.route("/new", methods=["POST"])
 def create():
     # check for the required fields
-    if request.args.get("userID") != None:
-        userID = request.args.get("userID")
-
-    print(userID," is the userID")
+    file_path = "user_id.txt"
+    userID = ""
+    try:
+        with open(file_path, "r") as file:
+            userID = file.read()
+    except FileNotFoundError:
+        pass
 
     required_fields = ["title", "start_date", "end_date", "post_type"]
 
