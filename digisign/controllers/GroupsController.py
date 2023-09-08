@@ -2,6 +2,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from models.Group import Group
+from models.User import User
 
 
 controller = Blueprint("groups", __name__, template_folder="templates")
@@ -35,6 +36,15 @@ def create_post():
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def index():
+    user_instance = User()
+    user = user_instance.readFromTxt()
+    users = user.all()
+    print(user.get_type,"this is the user type")
+
+    if (user.get_type()!= "ADMINISTRATOR"):
+        error_message = "This tab can only be accessed by an admin user"
+        return render_template("users/error.html", error_message = error_message)
+
     groups = Group().all()
 
     for group in groups:
@@ -43,4 +53,3 @@ def index():
         group["posts_count"] = count
 
     return render_template("groups/list.html", groups=groups)
-    

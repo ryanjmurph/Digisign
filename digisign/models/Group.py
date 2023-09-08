@@ -26,8 +26,9 @@ class Group(Query):
         self.moderation_required = moderation_required
 
 
-    def all(self):
-        with self.connection.cursor() as cursor:
+    @classmethod
+    def all(cls):
+        with cls.connection.cursor() as cursor:
             sql = "SELECT * FROM post_groups"
             cursor.execute(sql)
             result = cursor.fetchall()

@@ -7,7 +7,7 @@
                 <p>Active Posts</p>
             </div>
             <div class="card-body">
-                <p>10</p>
+                <p>{{ amount }}</p> <!-- Replace "10" with the amount variable -->
             </div>
         </div>
     </div>
@@ -17,7 +17,7 @@
                 <p>Moderation Actions Required</p>
             </div>
             <div class="card-body">
-                <p>10</p>
+                <p>{{ pendingAmount }}</p>
             </div>
         </div>
     </div>
@@ -27,9 +27,12 @@
                 <p>Devices Online</p>
             </div>
             <div class="card-body">
-                <p>10</p>
+                <p>{{ amount }}</p>
             </div>
         </div>
     </div>
+</div>
+<div class="mt-4">
+    <a href="{{ url_for('posts.new', userID=userID) }}" class="btn btn-primary">New Post</a>
 </div>
 {% endblock %}
