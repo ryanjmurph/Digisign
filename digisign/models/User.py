@@ -130,3 +130,13 @@ class User(Query):
     def get_state(self):
         return str(self.state)
     
+    def readFromTxt(self): 
+        try:
+            file_path = "user_id.txt"
+            with open(file_path, "r") as file:
+                userID = file.read()
+        except FileNotFoundError:
+            pass
+        return self.findById(userID)
+
+        

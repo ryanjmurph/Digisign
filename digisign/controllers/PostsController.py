@@ -7,7 +7,7 @@ from flask import Blueprint, redirect, render_template, abort, request, url_for
 from flask_login import login_required
 from models.Post import Post
 from models.Group import Group
-
+from models.User import User
 
 controller = Blueprint("posts", __name__, template_folder="templates")
 
@@ -228,6 +228,16 @@ def approve_action(id):
 @login_required
 def list_posts():
     # check if filter is set in the query string
+    user_instance = User()
+    user = user_instance.readFromTxt()
+    
+    print(user.get_type,"this is the user type")
+
+    if (user.get_type()!= "ADMINISTRATOR"):
+        error_message = "This tab can only be accessed by an admin user"
+        return render_template("users/error.html", error_message = error_message)
+
+
     activeFilters = ""
 
     if "filter" in request.args:

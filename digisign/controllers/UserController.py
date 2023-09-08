@@ -57,8 +57,14 @@ def new_user():
 
 @controller.route("/admin-view", methods=["GET"])
 def list_users():
-    user = User()
+    user_instance = User()
+    user = user_instance.readFromTxt()
     users = user.all()
+    
+    if (user.get_type()!= "ADMINISTRATOR"):
+        error_message = "This tab can only be accessed by an admin user"
+        return render_template("users/error.html", error_message = error_message)
+
     return render_template("users/list.html", users=users)
 
 
