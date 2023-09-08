@@ -8,37 +8,28 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="" method="post">
-            <div class="">
+        <form action="" id="group-form" method="post" onsubmit="submitForm">
+            <div class="mb-3">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" id="name" name="name" value="{{group.name}}" required />
             </div>
 
-            <div class=" mt-2">
+            <div class="mb-3">
                 <label for="description">Description</label>
                 <input type="text" class="form-control" id="description" name="description"
                     value="{{group.description}}">
             </div>
 
-            <div class=" mt-2">
-                <label for="moderation">Moderation Required</label>
+            <div class="mb-3">
                 <input type="checkbox" class="form-check-input" id="moderation" name="moderation_required" {% if
                     group.moderation_required %} checked {% endif %} />
+                <label for="moderation" class="form-label">Moderation Required</label>
             </div>
 
-            <div class="mt-2">
-                <label for="moderator_id">Moderator</label>
-                <select class="form-control" id="moderator_id" name="moderator_id">
-                    <option value="">Select a Moderator</option>
-                    {% for user in users %}
-                    <option value="{{user.id}}" {% if group.moderator_id==user.id %} selected {% endif %}>
-                        {{user.name}}</option>
-                    {% endfor %}
-                </select>
-            </div>
+            {% include "groups/components/moderator-control.html" %}
 
             <div class="mt-2">
-                <button type="submit" class="btn btn-primary" id="save">Save</button>
+                <button type="submit" class="btn btn-primary" id="saveGroup">Save Group</button>
             </div>
         </form>
     </div>
@@ -51,14 +42,29 @@
 
     <div class="card-body">
         {% if devices|length > 0 %}
-        <label for="device_id">Devices</label>
-        <select class="form-control" id="device_id" name="device_id" multiple>
-            <option value="">Select a Device</option>
-            {% for device in devices %}
-            <option value="{{ device.id }}" {% if device.id in group.devices %} selected {% endif %}>{{ device.name }}
-            </option>
-            {% endfor %}
-        </select>
+        <form action="/groups/edit/{{group.id}}/devices" method="post">
+
+
+            <label for="device_label"> <strong>Devices Linked</strong> </label>
+
+            <div class="row">
+                {% for device in devices %}
+                <div class="col-4">
+                    <label class="form-check-label" for="device_label_{{device.id}}">
+                        <input type="checkbox" class="form-check-input" id="device_label_{{device.id}}" name="device_id"
+                            value="{{device.id}}" {% if device.selected %} checked {% endif %} />
+                        {{device.name}}
+                    </label>
+                </div>
+                {%endfor%}
+            </div>
+
+            <div class="mt-2">
+                <button type="submit" class="btn btn-primary" id="save">Update Devices</button>
+            </div>
+
+        </form>
+
         {% else %}
         <div class="text-center rounded bg-warning ">
             <p class="text-white">No devices available for selection</p>

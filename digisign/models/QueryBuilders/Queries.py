@@ -3,9 +3,10 @@
 # Queries Parent class for the models to have shared methods
 
 import re
+from models.QueryBuilders.EagerLoadRelationship import JoinRelationship
 
 
-class Query(object):
+class Query(JoinRelationship):
     def __init__(self) -> None:
         pass
 
@@ -67,14 +68,11 @@ class Query(object):
             if key == "id":
                 continue
             if self.isAttributeCastable(casts,key):
-                print(f"Key: {key}")
                 sql += f"{self.castAttribute(casts,key,self.__dict__[key])}, "
             else:
                 sql += f"'{self.__dict__[key]}', "
         sql = sql[:-2]
         sql += ")"
-
-        print(f"SQL: {sql}")
 
         with connection.cursor() as cursor:
             cursor.execute(sql)
@@ -95,8 +93,6 @@ class Query(object):
 
         sql = f"SELECT * FROM {self.getTableName()} WHERE id = {id}"
 
-        print(f"SQL: {sql}")
-
         with connection.cursor() as cursor:
             cursor.execute(sql)
             result = cursor.fetchone()
@@ -106,8 +102,6 @@ class Query(object):
         connection = self.getDatabaseConnection()
 
         sql = f"SELECT * FROM {self.getTableName()} {self.getClauses()}"
-
-        print(f"SQL: {sql}")
 
         with connection.cursor() as cursor:
             cursor.execute(sql)
@@ -129,11 +123,7 @@ class Query(object):
         casts = self.getCasts()
         for key in values:
             if self.isAttributeCastable(casts,key):
-                print(f"Key: required casting {key}")
                 values[key] = self.castAttribute(casts,key,values[key])
-        
-        # print prepared values
-        print(f"Prepared values: {values}")
 
         return values
     

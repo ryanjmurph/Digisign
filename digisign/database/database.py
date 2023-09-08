@@ -32,6 +32,7 @@ class MYSQL:
                 db=config["MYSQL_DATABASE"],
                 charset="utf8mb4",
                 cursorclass=pymysql.cursors.DictCursor,
+                autocommit=True,
             )
         except Exception as e:
             print("ERROR: Unexpected error: Could not connect to MySql instance.")
