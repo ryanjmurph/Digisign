@@ -7,6 +7,7 @@ from flask import Blueprint, redirect, render_template, abort, request, url_for
 from flask_login import login_required
 from models.Post import Post
 from models.Group import Group
+from models.User import User
 
 controller = Blueprint("posts", __name__, template_folder="templates")
 
@@ -110,6 +111,14 @@ def update_post(request, id):
 @controller.route("/new", methods=["POST"])
 def create():
     # check for the required fields
+    file_path = "user_id.txt"
+    userID = ""
+    try:
+        with open(file_path, "r") as file:
+            userID = file.read()
+    except FileNotFoundError:
+        pass
+
     required_fields = ["title", "start_date", "end_date", "post_type"]
 
     for field in required_fields:
@@ -130,6 +139,7 @@ def create():
             endDate=request.form["end_date"],
             imageLink=f"static/images/{image.filename}",
             state="DRAFT",
+            created_by= userID
         )
 
         # save the post
@@ -144,6 +154,7 @@ def create():
             endDate=request.form["end_date"],
             htmlContent=request.form["htmlContent"],
             state="DRAFT",
+            created_by= userID
         )
         # save the post
         post.insert()
@@ -157,6 +168,7 @@ def create():
         endDate=request.form["end_date"],
         webLink=request.form["web_link"],  # Update this line
         state="DRAFT",
+        created_by= userID
         )
         # Check if the "Add QR code" checkbox is checked
         add_qr_code = request.form.get("add_qr_code")
@@ -216,6 +228,16 @@ def approve_action(id):
 @login_required
 def list_posts():
     # check if filter is set in the query string
+    user_instance = User()
+    user = user_instance.readFromTxt()
+    
+    print(user.get_type,"this is the user type")
+
+    if (user.get_type()!= "ADMINISTRATOR"):
+        error_message = "This tab can only be accessed by an admin user"
+        return render_template("users/error.html", error_message = error_message)
+
+
     activeFilters = ""
 
     if "filter" in request.args:

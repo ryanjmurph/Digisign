@@ -1,0 +1,12 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-danger" role="alert">
+        {{ error_message }}
+    </div>
+    <a href="javascript:history.go(-1);" class="btn btn-primary">Go Back</a>
+</div>
+{% endblock %}

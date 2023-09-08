@@ -27,6 +27,7 @@ class User(Query):
         created_at=None,
         updated_at=None,
         state=None,
+
     ) -> None:
         self.id = id
         self.name = name
@@ -35,6 +36,7 @@ class User(Query):
         self.type = type
         self.created_at = created_at
         self.updated_at = updated_at
+        self.state = state
 
     def all(self):
         connection = self.getDatabaseConnection()
@@ -55,6 +57,7 @@ class User(Query):
                 return self.setPropertiesOfUser(result)
             else:
                 return None
+    
 
     def findById(self, id):
         connection = self.getDatabaseConnection()
@@ -124,3 +127,17 @@ class User(Query):
 
     def get_type(self):
         return str(self.type)
+
+    def get_state(self):
+        return str(self.state)
+    
+    def readFromTxt(self): 
+        try:
+            file_path = "user_id.txt"
+            with open(file_path, "r") as file:
+                userID = file.read()
+        except FileNotFoundError:
+            pass
+        return self.findById(userID)
+
+        
