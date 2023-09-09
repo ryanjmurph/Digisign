@@ -4,7 +4,7 @@
 
 from datetime import datetime
 from database.database import MYSQL
-from models.Queries import Query
+from models.QueryBuilders.Queries import Query
 import qrcode
 
 connection = MYSQL().get_connection()
@@ -23,6 +23,14 @@ class Post(Query):
     created_by = None
     created_at = None
     updated_at = None
+
+    relationship = {
+        "groups": {
+            "table": "post_group",
+            "foreign_key": "post_id",
+            "local_key": "id",
+        },
+    }
 
     connection = MYSQL().get_connection()
 
@@ -197,6 +205,10 @@ class Post(Query):
             cursor.execute(sql, (end_date))
             result = cursor.fetchall()
             return result
+        
+    def associateDevices(self, devices):
+        self.device_id = device_id
+        return self
 
     
 

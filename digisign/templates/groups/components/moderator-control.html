@@ -1,0 +1,133 @@
+<div class="mb-3" id="moderator-control">
+    <label for="moderators" class="form-label"><strong>Moderators for the group</strong> </label>
+    <input type="hidden" name="selected_moderators" id="selected_moderators" value="{{selected_moderators}}" />
+    <div class="row">
+        <div class="col-5">
+            <div>
+                <label for="available_users" class="form-label">Available Users</label>
+                <select class="form-control" id="available_users" multiple>
+                    {% for user in available_users %}
+                    <option value="{{user.id}}">{{user.name}}</option>
+                    {% else %}
+                    <option value="0" disabled>No Users available</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-2">
+            <button type="button" class="btn mb-1 btn-primary" id="add_moderators">Add >> </button>
+            <button type="button" class="btn btn-danger" id="remove_moderators">Remove << </button>
+        </div>
+        <div class="col-5">
+            <div>
+                <label for="available_moderators" class="form-label">Selected Moderators</label>
+                <select class="form-control" name="available_moderators" id="available_moderators" multiple>
+                    {% for user in available_moderators %}
+                    <option value="{{user.id}}">{{user.name}}</option>
+                    {% else %}
+                    <option value="0" disabled>No Users available</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+    /**
+    * Groups moderator control script to allow an available user to be be added to selectd moderators input
+    * 
+    */
+
+    // availableUser select element = available_users
+    // selectedUsers select element = available_moderators
+
+    // add button = add_moderators
+    // remove button = remove_moderators
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var addModerators = document.getElementById('add_moderators');
+        var removeModerators = document.getElementById('remove_moderators');
+        var availableUsers = document.getElementById('available_users');
+        var selectedUsers = document.getElementById('available_moderators');
+        var selectedModeratorsInput = document.getElementById('selected_moderators');
+
+
+        // on load, remove all moderators from available users
+        onLoadRemoveModeratorsFromAvailableUser(availableUsers, selectedUsers);
+
+        // add event listener to add button
+        addModerators.addEventListener('click', function () {
+            moveSelectedAvailableUsersToModerators(availableUsers, selectedUsers);
+            updateSelectedModerators(selectedUsers,selectedModeratorsInput);
+
+
+        });
+
+        // add event listener to remove button
+        removeModerators.addEventListener('click', function () {
+            moveSelectedAvailableUsersToModerators(selectedUsers, availableUsers);
+            updateSelectedModerators(selectedUsers,selectedModeratorsInput);
+        });
+
+        // add event listener to moderation checkbox
+        var moderationRequiredElement = document.getElementById('moderation');
+        var moderatorControlElement = document.getElementById('moderator-control');
+
+        moderationRequiredElement.addEventListener('change', function () {
+            toggleComponentIfModerationRequired(this.checked, 'moderator-control');
+        });
+
+        console.log('Groups moderator control script loaded');
+    });
+
+    function toggleComponentIfModerationRequired(checked, elementName) {
+
+        if (checked) {
+            document.getElementById(elementName).classList.remove('d-none');
+        } else {
+            document.getElementById(elementName).classList.add('d-none');
+        }
+    }
+
+    function onLoadRemoveModeratorsFromAvailableUser(availableUsersElement, selectedUsersElement) {
+        // get all options from selectedUsers
+        var selectedUsersOptions = selectedUsersElement.options;
+        var availableUsersOptions = availableUsersElement.options;
+
+        // map selectedUsersOptions to array of values
+        var selectedUsersValues = Array.from(selectedUsersOptions).map(option => option.value);
+
+        // if availableUsersOptions.value is in selectedUsersValues, remove it
+        Array.from(availableUsersOptions).forEach(option => {
+            if (selectedUsersValues.includes(option.value)) {
+                option.remove();
+            }
+        });
+    }
+
+    function moveSelectedAvailableUsersToModerators(availableUsersElement, selectedUsersElement) {
+        var availableUsersSelectedOptions = availableUsersElement.selectedOptions;
+
+        Array.from(availableUsersSelectedOptions).forEach(option => {
+            selectedUsersElement.appendChild(option);
+        });
+
+        // remove selected attribute from all options
+        Array.from(selectedUsersElement.options).forEach(option => {
+            option.removeAttribute('selected');
+        });
+    }
+
+    // Function to update the selectedModerators array
+    function updateSelectedModerators(selectedModeratorsElement,availableModeratorsElement) {
+        const selectedModerators = Array.from(selectedModeratorsElement.options).map(option => option.value);
+        availableModeratorsElement.value = selectedModerators;
+    }
+
+
+
+
+</script>

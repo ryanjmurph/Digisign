@@ -3,9 +3,10 @@
 # Queries Parent class for the models to have shared methods
 
 import re
+from models.QueryBuilders.EagerLoadRelationship import JoinRelationship
 
 
-class Query(object):
+class Query(JoinRelationship):
     def __init__(self) -> None:
         pass
 
@@ -44,10 +45,6 @@ class Query(object):
                 return float(value)
             elif casts[attribute] == "bool":
                 return bool(value)
-                if value == False:
-                    return 0
-                else:
-                    return 1
             elif casts[attribute] == "string":
                 return str(value)
             else:
@@ -71,14 +68,11 @@ class Query(object):
             if key == "id":
                 continue
             if self.isAttributeCastable(casts,key):
-                print(f"Key: {key}")
                 sql += f"{self.castAttribute(casts,key,self.__dict__[key])}, "
             else:
                 sql += f"'{self.__dict__[key]}', "
         sql = sql[:-2]
         sql += ")"
-
-        print(f"SQL: {sql}")
 
         with connection.cursor() as cursor:
             cursor.execute(sql)
@@ -99,19 +93,15 @@ class Query(object):
 
         sql = f"SELECT * FROM {self.getTableName()} WHERE id = {id}"
 
-        print(f"SQL: {sql}")
-
         with connection.cursor() as cursor:
             cursor.execute(sql)
             result = cursor.fetchone()
-            return result
+            return self.castResultToModel(result)
 
     def get(self):
         connection = self.getDatabaseConnection()
 
         sql = f"SELECT * FROM {self.getTableName()} {self.getClauses()}"
-
-        print(f"SQL: {sql}")
 
         with connection.cursor() as cursor:
             cursor.execute(sql)
@@ -127,15 +117,42 @@ class Query(object):
 
         clauses_string = f"{where_clause} {sort_clause} {limit_clause}"
         return clauses_string
+    
+    def prepareValues(self,values):
+        # for insert and update queries, we cast any values in the dict to the correct type
+        casts = self.getCasts()
+        for key in values:
+            if self.isAttributeCastable(casts,key):
+                values[key] = self.castAttribute(casts,key,values[key])
+
+        return values
+    
+    def makeValuesSafe(self,values):
+        # if value is a string, escape it to prevent sql injection
+        # if value is a number, leave it as it is
+        # if value is None, set it to NULL
+
+        for key in values:
+            if type(values[key]) == str:
+                values[key] = self.getDatabaseConnection().escape(values[key])
+            elif values[key] == None:
+                values[key] = "NULL"
+
+        return values
 
     def update(self, data):
         if not self.id:
             raise Exception("Cannot update a record without an id")
+        
+        data = self.prepareValues(data)
+        data = self.makeValuesSafe(data)
 
         sql = f"UPDATE {self.getTableName()} SET "
+        
         for key in data:
-            sql += f"{key} = '{data[key]}', "
+            sql += f"{key} = {data[key]}, "
         sql = sql[:-2]
+
         sql += f" WHERE id = {self.id}"
 
         print(f"SQL: {sql}")
@@ -176,3 +193,13 @@ class Query(object):
 
     def snake_case(self, string):
         return re.sub(r"(?<!^)(?=[A-Z])", "_", string).lower()
+    
+    def castResultToModel(self,result):
+        casts = self.getCasts()
+        model = self.__class__()
+        for key in result:
+            if self.isAttributeCastable(casts,key):
+                setattr(model,key,self.castAttribute(casts,key,result[key]))
+            else:
+                setattr(model,key,result[key])
+        return model

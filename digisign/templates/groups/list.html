@@ -31,12 +31,12 @@
                 <tr>
                     <td>{{ group.name }}</td>
                     <!-- <td>{{ group.description }}</td> -->
-                    <td> Dummy Data </td>
+                    <td> {{group.description}}</td>
                     <td> Dummy Data </td>
                     <!-- <td>{{ group.posts }}</td> -->
                     <td>{{ group.posts_count }}</td>
                     <td>
-                        <a href="#" class="btn btn-primary">View</a>
+                        <a href="/groups/edit/{{group.id}}" class="btn btn-primary">View</a>
                     </td>
                 {% endfor %}
             </tbody>

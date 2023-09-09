@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask_login import UserMixin
 from database.database import MYSQL
-from models.Queries import Query
+from models.QueryBuilders.Queries import Query
 
 
 class User(Query):
@@ -26,7 +26,8 @@ class User(Query):
         type=None,
         created_at=None,
         updated_at=None,
-        state = None
+        state=None,
+
     ) -> None:
         self.id = id
         self.name = name
