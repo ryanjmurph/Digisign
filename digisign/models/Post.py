@@ -68,6 +68,13 @@ class Post(Query):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
+    
+    def postWithID(id):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE created_by = %s LIMIT 30"
+            cursor.execute(sql ,(id))
+            result = cursor.fetchall()
+            return result
 
     def find(id):
         with connection.cursor() as cursor:
@@ -198,7 +205,12 @@ class Post(Query):
             result = cursor.fetchall()
             return result
 
-    
+    def deleteWithID(id):
+        with connection.cursor() as cursor:
+            sql = "DELETE * FROM posts WHERE id =%s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchall()
+            return result
 
     @staticmethod
     def createQR(webLink,code):

@@ -17,6 +17,8 @@ def index():
     posts = Post.all()
     return render_template("posts/index.html", posts=posts)
 
+@controller.route("/<int:id>/edit", methods=["GET", "POST"])
+
 
 @controller.route("/<int:id>/edit", methods=["GET", "POST"])
 def show_edit_page(id):
@@ -224,6 +226,36 @@ def approve_action(id):
     return redirect(url_for("posts.list_posts"))
 
 
+@controller.route("/user-view", methods=["GET"])
+def list_users_posts():
+    # check if filter is set in the query string
+    user_instance = User()
+    user = user_instance.readFromTxt()
+    activeFilters = ""
+
+    if "filter" in request.args:
+        # check for filter by name
+        if request.args["filter"] == "title":
+            posts = Post.filter_by_title(request.args["search"])
+            activeFilters = "title=" + request.args["search"]
+
+        # check for filter by state
+        if request.args["filter"] == "state":
+            posts = Post.filter_by_state(request.args["search"])
+            activeFilters = "state=" + request.args["search"]
+
+        # check for filter by id
+        if request.args["filter"] == "id":
+            posts = Post.filter_by_id(request.args["search"])
+            activeFilters = "id=" + request.args["search"]
+    else:
+        posts = Post.postWithID(user.get_id())
+
+    # return the form in templates/posts/create.html
+    return render_template(
+        "posts/admin/list.html", posts=posts, activeFilters=activeFilters
+    )
+
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_posts():
@@ -263,9 +295,10 @@ def list_posts():
         "posts/admin/list.html", posts=posts, activeFilters=activeFilters
     )
 
+
 @controller.route("/display")
 def display():
-    folder_path = "static/images"  # Replace this with the path to your folder
+    folder_path = "static/images"  
 
 
     files_and_dirs = os.listdir(folder_path)
