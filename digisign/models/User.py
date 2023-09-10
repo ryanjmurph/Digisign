@@ -127,6 +127,9 @@ class User(Query):
 
     def get_id(self):
         return str(self.id)
+    
+    def get_email(self):
+        return str(self.email)
 
     def get_type(self):
         return str(self.type)

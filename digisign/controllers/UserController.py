@@ -64,12 +64,19 @@ def list_users():
     
     policy = UserAccessPolicy(user = current_user)
 
-    if not policy.canViewAllUsers():
-        error_message = "This tab can only be accessed by an admin user"http://localhost/users/admin-view
-        return render_template("errors/401.html", error_message=error_message)
-        
+    if policy.canViewAllUsers():
+        users = User().all()
+        return render_template("users/list.html", users=users)
+    else:
+        user = current_user 
+        id = user.get_id()
+        if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
+            posts = [] 
+            posts = Post().where("created_by", id).get()
+        return render_template("users/edit.html", user=user, posts=posts)
 
-    users = User().all()
+    
+    
     # user = user_instance.readFromTxt()
     # users = user.all()
     
@@ -77,7 +84,7 @@ def list_users():
     #     error_message = "This tab can only be accessed by an admin user"
     #     return render_template("users/error.html", error_message = error_message)
 
-    return render_template("users/list.html", users=users)
+    
 
 
 @controller.route("/<int:id>/edit", methods=["GET"])
@@ -96,8 +103,8 @@ def view_user(id):
     print(f"User type: {user.get_type()}")
     if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
         posts = Post().where("created_by", id).get()
-
-    return render_template("users/edit.html", user=user, posts=posts)
+    print(posts)
+    return render_template("users/admin/edit.html", user=user, posts=posts)
 
 
 @controller.route("/<int:id>/update", methods=["POST"])

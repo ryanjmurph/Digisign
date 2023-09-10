@@ -1,0 +1,194 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/users/admin-view">View Users</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit User </li>
+    </ol>
+</nav>
+
+<h1>Edit {{user.type.lower()}} #{{user.id}}</h1>
+
+<div class="card">
+    <div class="card-body">
+        <form action="update" method="POST" autocomplete="off">
+            <input type="hidden" name="_method" value="PUT" />
+
+            <div class="mb-3">
+                <label for="name" class="form-label"><strong>Name</strong> </label>
+                <input type="text" class="form-control" id="name" name="name" required value="{{user.name}}" />
+            </div>
+
+
+            {% if user.type !='DEVICE' %}
+            <div class="mb-3">
+                <label for="email" class="form-label"><strong>Email</strong> </label>
+                <input type="text" class="form-control" id="email" name="email" required value="{{user.email}}" />
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="state" class="form-label"><strong>State</strong> </label>
+                <select class="form-select" id="state" name="state" required>
+                    <option value="APPROVAL_REQUIRED" {% if user.state=='APPROVAL_REQUIRED' %}selected{% endif %}>Approval Required</option>
+                    <option value="ACTIVE" {% if user.state=='ACTIVE' %}selected{% endif %}>Active</option>
+                    <option value="INACTIVE" {% if user.state=='INACTIVE' %}selected{% endif %}>Inactive</option>
+                    <option value="DELETED" {% if user.state=='DELETED' %}selected{% endif %}>Deleted</option>
+                </select>
+
+                
+                {% if user.state == 'APPROVAL_REQUIRED' %}
+                <div class="mt-1 bg-warning rounded p-1">
+                    <p> The user requires an approval. They will not be able to login / perform any actions until the account is approved </p>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label"><strong>Password</strong> </label>
+                <input type="password" class="form-control" id="password" name="password" value="" />
+            </div>
+
+            <div class="mb-3">
+                <label for="type" class="form-label"><strong>Type</strong> </label>
+                <select class="form-select" id="type" name="type" required>
+                    <option value="ADMINISTRATOR" {% if user.type=='ADMIN' %}selected{% endif %}>Admin</option>
+                    <option value="USER" {% if user.type=='USER' %}selected{% endif %}>User</option>
+                    <option value="DEVICE" {% if user.type=='DEVICE' %}selected{% endif %}>Device</option>
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-3">
+
+    <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <button class="nav-link active" id="nav-posts-tab" data-bs-toggle="tab" data-bs-target="#nav-posts"
+                type="button" role="tab" aria-controls="nav-home" aria-selected="true">Posts ({{posts|count}})</button>
+            <button class="nav-link" id="nav-groups-tab" data-bs-toggle="tab" data-bs-target="#nav-groups" type="button"
+                role="tab" aria-controls="nav-groups" aria-selected="false" {{ 'disabled' if user.type !='DEVICE'
+                }}>Groups</button>
+        </div>
+    </nav>
+    <div class="tab-content" id="nav-tabContent">
+
+        <div class="tab-pane fade show active p-4" id="nav-posts" role="tabpanel" aria-labelledby="nav-posts-tab"
+            tabindex="0">
+            {% if posts |count != 0 %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Post ID</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">State</th>
+                        <th scope="col">Submitted By</th>
+                        <th scope="col">Start Date</th>
+                        <th scope="col">End Date</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% for post in posts %}
+                    <tr>
+                        <th scope="row">{{post.id}}</th>
+                        <td>{{post.title}}</td>
+                        <td>
+
+                            <!-- if type == TEXT display card-text icon -->
+                            {% if post.type == 'HTML' %}
+                            <p class="text-success text-decoration-none">
+                                {{post.type}}
+                                <i class="bi bi-card-text"></i>
+                            </p>
+                            {% endif %}
+
+                            <!-- if type == IMAGE display card-image icon -->
+                            {% if post.type == 'IMAGE' %}
+                            <p class="text-decoration-none text-secondary">
+                                {{post.type}}
+                                <i class="bi bi-card-image"></i>
+                            </p>
+                            {% endif %}
+
+                            <!-- if type == WEB_LINK display URL icon -->
+                            {% if post.type == 'WEB_LINK' %}
+                            <p class="text-decoration-none text-primary">
+                                {{post.type}}
+                                <i class="bi bi-qr-code"></i>
+                            </p>
+
+                            {% endif %}
+
+
+
+                        </td>
+                        <td>
+                            {% if post.state == 'DRAFT' %}
+                            <p class="text-secondary">
+                                <strong>{{post.state}}</strong>
+                            </p>
+                            {% endif %}
+
+                            {% if post.state == 'PENDING_APPROVAL' %}
+                            <p class="text-warning">
+                                <strong>{{post.state}}</strong>
+                            </p>
+                            {% endif %}
+
+                            {% if post.state == 'APPROVED' %}
+                            <p class="text-success">
+                                <strong>{{post.state}}</strong>
+                            </p>
+                            {% endif %}
+
+                            {% if post.state == 'WITHDRAWN' %}
+                            <p class="text-danger">
+                                <strong>{{post.state}}</strong>
+                            </p>
+                            {% endif %}
+
+                        </td>
+                        <td>{{post.created_by}}</td>
+                        <td>{{post.start_date}}</td>
+                        <td>{{post.end_date}}</td>
+                        <td>
+                            <div class="flex text-decoration-none">
+                                {% if post.state == 'DRAFT' %}
+                                <a href="/posts/{{post.id}}/edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="/posts/{{post.id}}/delete" class="text-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                No posts associated with the {{user.type.lower()}}.
+            </div>
+            {% endif %}
+        </div>
+        <div class="tab-pane fade" id="nav-groups" role="tabpanel" aria-labelledby="nav-groups-tab" tabindex="0">Groups
+            Tab
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
