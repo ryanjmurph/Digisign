@@ -11,7 +11,7 @@ class GroupModerator(Query):
     # table_name = "post_groups"
     connection = MYSQL().get_connection()
 
-    def __init__(self,group,user=None,current_moderators=None):
+    def __init__(self,group=None,user=None,current_moderators=None):
 
         # if group is not a Group object throw an error
         if not isinstance(group,Group):
@@ -25,6 +25,16 @@ class GroupModerator(Query):
         self.group = group
         self.user = user
         self.current_moderators = current_moderators
+
+    def getGroupsCanModerate(self):
+        if not self.user:
+            return Exception("User must be set")
+        
+        with self.connection.cursor() as cursor:
+            sql = f"SELECT * FROM groups WHERE id IN (SELECT group_id FROM group_moderators WHERE user_id = {self.user.id})"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
 
     def getCurrentModerators(self):
         if not self.current_moderators:

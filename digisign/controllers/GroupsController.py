@@ -112,14 +112,14 @@ def edit_post(id):
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def index():
-    user_instance = User()
-    user = user_instance.readFromTxt()
-    users = user.all()
-    print(user.get_type,"this is the user type")
+    # user_instance = User()
+    # user = user_instance.readFromTxt()
+    # users = user.all()
+    # print(user.get_type,"this is the user type")
 
-    if (user.get_type()!= "ADMINISTRATOR"):
-        error_message = "This tab can only be accessed by an admin user"
-        return render_template("users/error.html", error_message = error_message)
+    # if (user.get_type()!= "ADMINISTRATOR"):
+    #     error_message = "This tab can only be accessed by an admin user"
+    #     return render_template("users/error.html", error_message = error_message)
 
     groups = Group().all()
 

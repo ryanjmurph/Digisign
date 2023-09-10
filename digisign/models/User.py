@@ -139,5 +139,16 @@ class User(Query):
         except FileNotFoundError:
             pass
         return self.findById(userID)
+    
+    def __dict__(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "type": self.type,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "state": self.state,
+        }
 
         
