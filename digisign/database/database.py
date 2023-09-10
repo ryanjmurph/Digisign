@@ -26,7 +26,7 @@ class MYSQL:
     def connect(self):
         try:
             connection = pymysql.connect(
-                host="localhost",
+                host=config["MYSQL_HOST"],
                 user=config["MYSQL_USER"],
                 password=config["MYSQL_PASSWORD"],
                 db=config["MYSQL_DATABASE"],
