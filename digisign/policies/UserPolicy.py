@@ -46,7 +46,7 @@ class Policy(Query):
         if len(self.getGroupsCanModerate()) == 0:
             return False
         return True
-    
+
     def isAnAdministator(self):
         return self.user.type == "ADMINISTRATOR"
     

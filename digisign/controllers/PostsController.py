@@ -234,12 +234,18 @@ def approve_action(id):
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_posts():
-    
-    policy = PostPolicy(user=current_user)
 
-    if not policy.canViewPostList():
+    user = current_user
+    policy = PostPolicy(user)
+
+    if policy.canViewAdminPostList():
+        userposts = Post.all()
+    elif policy.canViewPostList():
+         userposts = Post.postsWithID(current_user.get_id()) 
+    else:
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)
+    
 
 
     activeFilters = ""
@@ -260,7 +266,7 @@ def list_posts():
             posts = Post.filter_by_id(request.args["search"])
             activeFilters = "id=" + request.args["search"]
     else:
-        posts = Post.all()
+        posts = userposts
 
     # return the form in templates/posts/create.html
     return render_template(

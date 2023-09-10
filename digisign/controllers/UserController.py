@@ -61,12 +61,12 @@ def new_user():
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_users():
-
-    policy = UserAccessPolicy(current_user)
+    
+    policy = UserAccessPolicy(user = current_user)
 
     if not policy.canViewAllUsers():
-        error_message = "This tab can only be accessed by an admin user"
-        return render_template("users/error.html", error_message=error_message)
+        error_message = "This tab can only be accessed by an admin user"http://localhost/users/admin-view
+        return render_template("errors/401.html", error_message=error_message)
         
 
     users = User().all()

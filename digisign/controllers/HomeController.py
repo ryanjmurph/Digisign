@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template,request
 from models.Post import Post
+from flask_login import current_user, login_required
 
 controller = Blueprint("home_controller", __name__, template_folder="templates")
 
@@ -25,7 +26,5 @@ def dashboard():
     
     amount = post.noOfPosts(str(userID))
     pendingAmount = post.noOfPendingPosts(str(userID))
-
-
-    print(amount,"This is the amount")
+    
     return render_template("home/dashboard.html",userID = userID, amount = amount, pendingAmount = pendingAmount)

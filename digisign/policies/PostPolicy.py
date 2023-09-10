@@ -20,5 +20,8 @@ class Policy(UserPolicy,Query):
     def canCreatePost(self):
         return self.isAnAdministator() or (self.isAUser() and self.user.is_active())
     
+    def canViewAdminPostList(self):
+        return self.isAnAdministator()
+            
     def canViewPostList(self):
-        return self.isAnAdministator() or (self.isAUser() and self.user.isActive())
+        return self.isAUser() and self.user.is_active()

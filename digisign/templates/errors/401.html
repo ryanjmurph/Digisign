@@ -1,0 +1,15 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6 offset-md-3 text-center">
+                <h1 class="display-4">Unauthorized - 401 Error</h1>
+                <p class="lead">{{ error_message }}</p>
+
+                <!-- Back Button -->
+                <a href="{{ url_for('home_controller.dashboard') }}" class="btn btn-primary">Back to Home</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

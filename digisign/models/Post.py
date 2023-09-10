@@ -76,6 +76,13 @@ class Post(Query):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
+    
+    def postsWithID(id):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE id = %s"
+            cursor.execute(sql,(id))
+            result = cursor.fetchall()
+            return result
 
     def find(id):
         with connection.cursor() as cursor:
