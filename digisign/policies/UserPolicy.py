@@ -28,8 +28,7 @@ class Policy(Query):
     def canCreateDevice(self):
         return self.isAnAdministator()
     
-    def isAnAdministator(self):
-        return self.user.type == "ADMINISTRATOR"
+
     
     # A user can only edit their own profile or if they are an administrator
     def canEditUser(self,user_id):
@@ -47,6 +46,15 @@ class Policy(Query):
         if len(self.getGroupsCanModerate()) == 0:
             return False
         return True
+    
+    def isAnAdministator(self):
+        return self.user.type == "ADMINISTRATOR"
+    
+    def isAUser(self):
+        return self.user.type == "USER"
+    
+    def isADevice(self):
+        return self.user.type == "DEVICE"
     
     def isAModerator(self):
         if self.isModerator == None:

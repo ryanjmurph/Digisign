@@ -121,6 +121,9 @@ class User(Query):
     @property
     def is_anonymous(self):
         return False
+    
+    def is_active(self):
+        return self.state == "ACTIVE"
 
     def get_id(self):
         return str(self.id)
