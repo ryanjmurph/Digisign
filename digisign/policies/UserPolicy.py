@@ -46,7 +46,7 @@ class Policy(Query):
         if len(self.getGroupsCanModerate()) == 0:
             return False
         return True
-
+    
     def isAnAdministator(self):
         return self.user.type == "ADMINISTRATOR"
     
@@ -57,9 +57,10 @@ class Policy(Query):
         return self.user.type == "DEVICE"
     
     def isAModerator(self):
-        if self.isModerator == None:
-            self.isModerator = self.checkDatabaseIfUserIsModerator()
-        return self.isModerator
+        if self.user.isModerator(self.user.id) == 0:
+            return False
+        else:
+            return True
 
             
         

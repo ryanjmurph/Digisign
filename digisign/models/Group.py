@@ -56,7 +56,21 @@ class Group(Query):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
+   
+    def groupByModerator(self, id): # the group ids moderated by user with id 
+        with self.connection.cursor() as cursor:
+            sql = "SELECT group_id FROM group_moderators WHERE user_id = %s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchall()
+            return result
         
+    def getGroupWithID(self, id): # the group info using the group ids
+        with self.connection.cursor() as cursor:
+            sql = "SELECT * FROM post_groups WHERE id = %s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchall()
+            return result
+
     def getPostsCount(self,group_id):
         with self.connection.cursor() as cursor:
             sql = f"SELECT COUNT(*) as count FROM post_groups_subscription WHERE group_id = {group_id}"

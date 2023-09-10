@@ -1,9 +1,10 @@
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask_login import login_required,current_user
 from models.Group import Group
 from models.GroupModerator import GroupModerator
 from models.User import User
+from policies.UserPolicy import Policy as UserAccessPolicy
 
 
 controller = Blueprint("groups", __name__, template_folder="templates")
@@ -112,17 +113,33 @@ def edit_post(id):
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def index():
-    # user_instance = User()
-    # user = user_instance.readFromTxt()
-    # users = user.all()
-    # print(user.get_type,"this is the user type")
+    
+    user = current_user
+    policy = UserAccessPolicy(user)
+    if policy.canviewAllGroups(): 
+        groups = Group().all()
 
-    # if (user.get_type()!= "ADMINISTRATOR"):
-    #     error_message = "This tab can only be accessed by an admin user"
-    #     return render_template("users/error.html", error_message = error_message)
+     # if the user is a moderator, only the groups that they moderate should be displayed   
+    elif policy.isAModerator():
+        anotherGroup = Group()
+        
+        array = []
+        data = anotherGroup.groupByModerator(user.get_id())
+        for i in range(0,len(data),1):
+            val = data[i]
+            number = val['group_id'] 
+            array.append(number)        
+    
+        combined_data = []  
 
-    groups = Group().all()
+        for j in range(0, len(data), 1):
+            value = anotherGroup.getGroupWithID(array[j])
+            combined_data.extend(value) 
+    
+        groups = combined_data
 
+    
+    #print(groups)
     for group in groups:
         # get count of posts attached to the group
         count = Group().getPostsCount(group["id"])

@@ -58,6 +58,13 @@ class User(Query):
             else:
                 return None
     
+    def isModerator(self, id):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            sql = "SELECT COUNT(*) FROM group_moderators WHERE user_id = %s"
+            cursor.execute(sql ,(id))
+            result = cursor.fetchall()
+            return result
 
     def findById(self, id):
         connection = self.getDatabaseConnection()
@@ -136,6 +143,9 @@ class User(Query):
 
     def get_state(self):
         return str(self.state)
+    
+    def get_password(self):
+        return str(self.password)
     
     def readFromTxt(self): 
         try:

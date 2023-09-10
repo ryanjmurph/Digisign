@@ -69,5 +69,7 @@ class GroupModerator(Query):
                 self.connection.commit()
                 return True
         return False
+    
+    
 
-        
+    
