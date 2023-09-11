@@ -61,7 +61,7 @@ def update_post(request, id):
         if attributes[key] != getattr(post, key):
             updates[key] = attributes[key]
 
-    removePreviousImage = False
+    remove_previous_image = False
 
     # check to see if post type changed from image
     if post.type == "IMAGE" and request.form["post_type"] != "image":
@@ -80,13 +80,13 @@ def update_post(request, id):
         else:
             updates["image_link"] = f"static/images/{request.files['image'].filename}"
             if post.type == "IMAGE":
-                removePreviousImage = True
+                remove_previous_image = True
 
             # store the image in the static/images folder
             image = request.files["image"]
             image.save(f"static/images/{image.filename}")
 
-        if removePreviousImage:
+        if remove_previous_image:
             # delete the previous image
             if "image" in request.files:
                 os.remove(post.image_link)
@@ -115,15 +115,6 @@ def update_post(request, id):
 @controller.route("/new", methods=["POST"])
 @login_required
 def create():
-    # check for the required fields
-    file_path = "user_id.txt"
-    userID = ""
-    try:
-        with open(file_path, "r") as file:
-            userID = file.read()
-    except FileNotFoundError:
-        pass
-
     required_fields = ["title", "start_date", "end_date", "post_type"]
 
     for field in required_fields:
@@ -144,7 +135,7 @@ def create():
             endDate=request.form["end_date"],
             imageLink=f"static/images/{image.filename}",
             state="DRAFT",
-            created_by= userID
+            created_by=current_user.get_id()
         )
 
         # save the post
@@ -159,34 +150,33 @@ def create():
             endDate=request.form["end_date"],
             htmlContent=request.form["htmlContent"],
             state="DRAFT",
-            created_by= userID
+            created_by=current_user.get_id()
         )
         # save the post
         post.insert()
 
     elif request.form["post_type"] == "link":
-    # create the post
+        # create the post
         post = Post(
-        title=request.form["title"],
-        type="WEB_LINK",
-        startDate=request.form["start_date"],
-        endDate=request.form["end_date"],
-        webLink=request.form["web_link"],  # Update this line
-        state="DRAFT",
-        created_by= userID
+            title=request.form["title"],
+            type="WEB_LINK",
+            startDate=request.form["start_date"],
+            endDate=request.form["end_date"],
+            webLink=request.form["web_link"],  # Update this line
+            state="DRAFT",
+            created_by=current_user.get_id()
         )
         # Check if the "Add QR code" checkbox is checked
         add_qr_code = request.form.get("add_qr_code")
         if add_qr_code:
-            webLink=request.form["web_link"]
-            post.createQR(webLink,True)
+            web_link = request.form["web_link"]
+            post.createQR(web_link, True)
 
         else:
-            webLink=request.form["web_link"]
-            post.createQR(webLink,False)
+            web_link = request.form["web_link"]
+            post.createQR(web_link, False)
 
         post.insert()
-
 
     # save the post groups
     if "post_groups" in request.form:
@@ -241,46 +231,44 @@ def list_posts():
     if policy.canViewAdminPostList():
         userposts = Post.all()
     elif policy.canViewPostList():
-         userposts = Post.postsCreatedBy(current_user.get_id()) 
+        userposts = Post.postsCreatedBy(current_user.get_id())
     else:
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)
-    
 
-
-    activeFilters = ""
+    active_filters = ""
 
     if "filter" in request.args:
         # check for filter by name
         if request.args["filter"] == "title":
             posts = Post.filter_by_title(request.args["search"])
-            activeFilters = "title=" + request.args["search"]
+            active_filters = "title=" + request.args["search"]
 
         # check for filter by state
         if request.args["filter"] == "state":
             posts = Post.filter_by_state(request.args["search"])
-            activeFilters = "state=" + request.args["search"]
+            active_filters = "state=" + request.args["search"]
 
         # check for filter by id
         if request.args["filter"] == "id":
             posts = Post.filter_by_id(request.args["search"])
-            activeFilters = "id=" + request.args["search"]
+            active_filters = "id=" + request.args["search"]
     else:
         posts = userposts
 
     # return the form in templates/posts/create.html
     return render_template(
-        "posts/admin/list.html", posts=posts, activeFilters=activeFilters
+        "posts/admin/list.html", posts=posts, activeFilters=active_filters
     )
+
 
 @controller.route("/display")
 @login_required
 def display():
     folder_path = "static/images"  # Replace this with the path to your folder
 
-
     files_and_dirs = os.listdir(folder_path)
-    filenames = [file for file in files_and_dirs if os.path.isfile(os.path.join(folder_path, file))]
+    filenames = [file for file in files_and_dirs if os.path.isfile(
+        os.path.join(folder_path, file))]
     print(filenames)
-    return render_template("display.html", filenames = filenames)
-    
+    return render_template("display.html", filenames=filenames)
