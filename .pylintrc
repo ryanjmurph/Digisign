@@ -1,0 +1,5 @@
+# disable missing-module-docstring
+# pylint: disable=C0114
+[MASTER]
+disable = 
+    C0114,C0115,C0116

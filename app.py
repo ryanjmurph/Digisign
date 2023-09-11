@@ -1,11 +1,8 @@
+"""Module to start the Flask server and register the blueprints."""
 from flask import (
     Flask,
     flash,
-    render_template,
-    request,
     redirect,
-    Response,
-    jsonify,
     url_for,
 )
 from flask_login import LoginManager
@@ -13,24 +10,25 @@ from flask_bcrypt import Bcrypt
 
 from dotenv import dotenv_values
 
+from database.database import MYSQL
+
 from models.User import User
 
 config = dotenv_values(".env")  # read the database credentials from .env file
 
-## STEP 1: Create a Flask app
+# STEP 1: Create a Flask app
 app = Flask(__name__, static_url_path="/static")
 
-## Step 2 : Initialize Flask Login
+# Step 2 : Initialize Flask Login
 app.secret_key = config["SECRET_KEY"]
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 bcrypt = Bcrypt(app)
 
-## STEP 3: Get Database Connection
-from database.database import MYSQL
-
 connection = MYSQL().get_connection()
+
+"""This function is used to load the user object from the user_id"""
 
 
 @login_manager.user_loader
@@ -45,13 +43,14 @@ def unauthorized():
 
 
 if __name__ == "__main__":
-    ## STEP 4: Import Controllers
-    from controllers import AuthenticationController, HomeController, PostsController,GroupsController,UserController
+    # STEP 4: Import Controllers
+    from controllers import AuthenticationController, HomeController, PostsController, GroupsController, UserController
 
-    ## Step 4: Register Blueprints
+    # Step 4: Register Blueprints
     app.register_blueprint(PostsController.controller, url_prefix="/posts")
     app.register_blueprint(HomeController.controller, url_prefix="/")
-    app.register_blueprint(AuthenticationController.controller, url_prefix="/auth")
+    app.register_blueprint(
+        AuthenticationController.controller, url_prefix="/auth")
     app.register_blueprint(GroupsController.controller, url_prefix="/groups")
     app.register_blueprint(UserController.controller, url_prefix="/users")
     print(
