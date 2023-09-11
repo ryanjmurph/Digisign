@@ -1,1 +1,6 @@
-digisign/.vscode/launch.json
+.env
+__pycache__/
+*.pyc
+*.idea
+
+
