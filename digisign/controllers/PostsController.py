@@ -241,7 +241,7 @@ def list_posts():
     if policy.canViewAdminPostList():
         userposts = Post.all()
     elif policy.canViewPostList():
-         userposts = Post.postsWithID(current_user.get_id()) 
+         userposts = Post.postsCreatedBy(current_user.get_id()) 
     else:
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)

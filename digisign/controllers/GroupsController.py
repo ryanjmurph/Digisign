@@ -137,9 +137,10 @@ def index():
             combined_data.extend(value) 
     
         groups = combined_data
-
     
-    #print(groups)
+    else:
+        groups = []
+    
     for group in groups:
         # get count of posts attached to the group
         count = Group().getPostsCount(group["id"])

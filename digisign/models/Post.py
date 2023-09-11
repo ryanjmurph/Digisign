@@ -83,6 +83,13 @@ class Post(Query):
             cursor.execute(sql,(id))
             result = cursor.fetchall()
             return result
+        
+    def postsCreatedBy(id):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM posts WHERE created_by = %s"
+            cursor.execute(sql,(id))
+            result = cursor.fetchall()
+            return result
 
     def find(id):
         with connection.cursor() as cursor:

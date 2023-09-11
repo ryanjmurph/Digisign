@@ -69,10 +69,10 @@ def list_users():
         return render_template("users/list.html", users=users)
     else:
         user = current_user 
-        id = user.get_id()
         if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
             posts = [] 
             posts = Post().where("created_by", id).get()
+            print(posts)
         return render_template("users/edit.html", user=user, posts=posts)
 
     
