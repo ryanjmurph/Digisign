@@ -1,7 +1,7 @@
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_user, logout_user
-from app import bcrypt
-from flask import Blueprint, request, flash, redirect, render_template, url_for
 
+from app import bcrypt
 from models.User import User
 
 controller = Blueprint(
@@ -45,13 +45,14 @@ def register_post():
 
     user = User().find(username)
 
-    if user != None:
+    if user is not None:
         flash("Username already exists", "error")
         return redirect(url_for("authentication_controller.register"))
 
     pw_hash = bcrypt.generate_password_hash(password)
 
-    user = User(email=username, password=pw_hash, name=name, type="USER",state="APPROVAL_REQUIRED")
+    user = User(email=username, password=pw_hash, name=name,
+                type="USER", state="APPROVAL_REQUIRED")
 
     #  print the class name of the user object
     print(type(user))
@@ -78,16 +79,16 @@ def login_post():
     password = request.form["password"]
 
     user = User().find(username)
-    userID = user.get_id()
 
-    if user == None:
-        flash("The username or password you entered is incorrect [username]", "error")
+    if user is None:
+        flash(
+            "The username or password you entered is incorrect [username]", "error")
         return redirect(url_for("authentication_controller.login"))
-    
+
     if user.get_state() == "APPROVAL_REQUIRED":
         flash("Your account is not approved yet", "error")
         return redirect(url_for("authentication_controller.login"))
-    
+
     if user.get_state() == "INACTIVE" or user.get_state() == "DELETED":
         flash("Your account is not active. Kindly reach out to an administrator", "error")
         return redirect(url_for("authentication_controller.login"))
@@ -98,12 +99,7 @@ def login_post():
     if not password_correct:
         flash("The username or password you entered is incorrect", "error")
         return redirect(url_for("authentication_controller.login"))
-    
-    file_path = "user_id.txt"
-    
-    with open(file_path, "w") as file:
-        file.write(str(userID))
-    
-    login_user(user,remember=True)
+
+    login_user(user, remember=True)
 
     return redirect(url_for("home_controller.dashboard"))
