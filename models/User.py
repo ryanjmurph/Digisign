@@ -58,6 +58,13 @@ class User(Query):
             else:
                 return None
     
+    def isModerator(self, id):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            sql = "SELECT COUNT(*) FROM group_moderators WHERE user_id = %s"
+            cursor.execute(sql ,(id))
+            result = cursor.fetchall()
+            return result
 
     def findById(self, id):
         connection = self.getDatabaseConnection()
@@ -121,15 +128,24 @@ class User(Query):
     @property
     def is_anonymous(self):
         return False
+    
+    def is_active(self):
+        return self.state == "ACTIVE"
 
     def get_id(self):
         return str(self.id)
+    
+    def get_email(self):
+        return str(self.email)
 
     def get_type(self):
         return str(self.type)
 
     def get_state(self):
         return str(self.state)
+    
+    def get_password(self):
+        return str(self.password)
     
     def readFromTxt(self): 
         try:
@@ -139,5 +155,16 @@ class User(Query):
         except FileNotFoundError:
             pass
         return self.findById(userID)
+    
+    def __dict__(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "type": self.type,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "state": self.state,
+        }
 
         

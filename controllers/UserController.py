@@ -1,8 +1,11 @@
-from flask import Blueprint, flash, render_template, request, redirect, url_for
+from flask import Blueprint, flash, jsonify, make_response, render_template, request, redirect, url_for
+from flask_login import current_user, login_required
 from models.Post import Post
 from models.User import User
 from datetime import datetime
 import bcrypt
+
+from policies.UserPolicy import Policy as UserAccessPolicy
 
 controller = Blueprint("users", __name__, template_folder="templates")
 
@@ -56,32 +59,64 @@ def new_user():
 
 
 @controller.route("/admin-view", methods=["GET"])
+@login_required
 def list_users():
-    user_instance = User()
-    user = user_instance.readFromTxt()
-    users = user.all()
     
-    if (user.get_type()!= "ADMINISTRATOR"):
-        error_message = "This tab can only be accessed by an admin user"
-        return render_template("users/error.html", error_message = error_message)
+    policy = UserAccessPolicy(user = current_user)
 
-    return render_template("users/list.html", users=users)
+    if policy.canViewAllUsers():
+        users = User().all()
+        return render_template("users/list.html", users=users)
+    else:
+        user = current_user 
+        if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
+            posts = [] 
+            posts = Post().where("created_by", id).get()
+            print(posts)
+        return render_template("users/edit.html", user=user, posts=posts)
+
+    
+    
+    # user = user_instance.readFromTxt()
+    # users = user.all()
+    
+    # if (user.get_type()!= "ADMINISTRATOR"):
+    #     error_message = "This tab can only be accessed by an admin user"
+    #     return render_template("users/error.html", error_message = error_message)
+
+    
 
 
 @controller.route("/<int:id>/edit", methods=["GET"])
+@login_required
 def view_user(id):
+
+    policy = UserAccessPolicy(current_user)
+
+    if not policy.canEditUser(id):
+        error_message = "You do not have permission to edit this user"
+        return render_template("users/error.html", error_message=error_message)
+
     user = User().findById(id)
 
     posts = []
     print(f"User type: {user.get_type()}")
     if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
         posts = Post().where("created_by", id).get()
-
-    return render_template("users/edit.html", user=user, posts=posts)
+    print(posts)
+    return render_template("users/admin/edit.html", user=user, posts=posts)
 
 
 @controller.route("/<int:id>/update", methods=["POST"])
+@login_required
 def update_user(id):
+    
+    policy = UserAccessPolicy(current_user)
+
+    if not policy.canEditUser(id):
+        error_message = "You do not have permission to edit this user"
+        return render_template("users/error.html", error_message=error_message)
+
     user = User().findById(id)
 
     fields_changing = {}

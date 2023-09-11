@@ -4,21 +4,25 @@
 
 import os
 from flask import Blueprint, redirect, render_template, abort, request, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 from models.Post import Post
 from models.Group import Group
 from models.User import User
+
+from policies.PostPolicy import Policy as PostPolicy
 
 controller = Blueprint("posts", __name__, template_folder="templates")
 
 
 @controller.route("/", methods=["GET"])
+@login_required
 def index():
     posts = Post.all()
     return render_template("posts/index.html", posts=posts)
 
 
 @controller.route("/<int:id>/edit", methods=["GET", "POST"])
+@login_required
 def show_edit_page(id):
     # check if _method is set in the form and the value is PUT
     if request.method == "POST" and request.form["_method"].upper() == "PUT":
@@ -109,6 +113,7 @@ def update_post(request, id):
 
 
 @controller.route("/new", methods=["POST"])
+@login_required
 def create():
     # check for the required fields
     file_path = "user_id.txt"
@@ -194,6 +199,7 @@ def create():
 
 
 @controller.route("/new", methods=["GET"])
+@login_required
 def new():
     groups = Group().all()
     # return the form in templates/posts/create.html
@@ -201,6 +207,7 @@ def new():
 
 
 @controller.route("/<int:id>/approve-action", methods=["GET"])
+@login_required
 def approve_action(id):
     # get action from the query string
     action = request.args["action"]
@@ -227,15 +234,18 @@ def approve_action(id):
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_posts():
-    # check if filter is set in the query string
-    user_instance = User()
-    user = user_instance.readFromTxt()
-    
-    print(user.get_type,"this is the user type")
 
-    if (user.get_type()!= "ADMINISTRATOR"):
-        error_message = "This tab can only be accessed by an admin user"
-        return render_template("users/error.html", error_message = error_message)
+    user = current_user
+    policy = PostPolicy(user)
+
+    if policy.canViewAdminPostList():
+        userposts = Post.all()
+    elif policy.canViewPostList():
+         userposts = Post.postsCreatedBy(current_user.get_id()) 
+    else:
+        error_message = "You are not authorized to view this page"
+        return render_template("errors/401.html", error_message=error_message)
+    
 
 
     activeFilters = ""
@@ -256,7 +266,7 @@ def list_posts():
             posts = Post.filter_by_id(request.args["search"])
             activeFilters = "id=" + request.args["search"]
     else:
-        posts = Post.all()
+        posts = userposts
 
     # return the form in templates/posts/create.html
     return render_template(
@@ -264,6 +274,7 @@ def list_posts():
     )
 
 @controller.route("/display")
+@login_required
 def display():
     folder_path = "static/images"  # Replace this with the path to your folder
 
