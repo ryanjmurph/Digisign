@@ -21,6 +21,7 @@ class Post(Query):
     web_link = None
     state = "DRAFT"
     created_by = None
+    display_time = None
     created_at = None
     updated_at = None
 
@@ -43,6 +44,7 @@ class Post(Query):
         endDate=None,
         imageLink=None,
         created_by = None,
+        display_time = None,
         htmlContent=None,
         webLink=None,
         state=None,
@@ -54,6 +56,7 @@ class Post(Query):
         self.end_date = endDate
         self.image_link = imageLink
         self.created_by = created_by
+        self.display_time = display_time
         self.html_content = htmlContent
         self.web_link = webLink
         self.state = state
@@ -126,7 +129,7 @@ class Post(Query):
 
     def insert(self):
         with connection.cursor() as cursor:
-            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)"
+            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by,display_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
 
             cursor.execute(
                 sql,
@@ -139,7 +142,8 @@ class Post(Query):
                     self.html_content,
                     self.web_link,
                     self.state,
-                    self.created_by
+                    self.created_by,
+                    self.display_time
                 ),
             )
             connection.commit()
@@ -223,18 +227,41 @@ class Post(Query):
     def associateDevices(self, devices):
         self.device_id = device_id
         return self
-
     
+    def getDisplayTimesFromDB(self,id):
+        with connection.cursor() as cursor:
+            sql = "SELECT display_time FROM posts WHERE id = %s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchall()
+            return result  
+
+    def getIDFromFileName(self,fileName):
+        result = ""
+        for letter in fileName:
+            if(letter!= "_"):
+                result = result + letter
+            else:
+                break
+        return int(result)
+
+
+    @property
+    def get_display_time(self):
+        return int(self.display_time)
+    
+    def get_id(self):
+        return self.id
 
     @staticmethod
-    def createQR(webLink,code):
+    def createQR(webLink,code,id):
         if code:
             qr = qrcode.QRCode(version = 1, box_size = 5, border =1)
             qr.add_data(webLink)
             qr.make(fit = True)
             img = qr.make_image()
-            name = webLink+"qr.jpg"
+            name = id + "_"+ webLink+"qr.jpg"
             img.save("static/images/"+name)
         else:
-            file = "static/images/"+webLink+".txt"
+            file = "static/images/"+ id + "_"+webLink+".txt"
             open(file, 'w').close()
+

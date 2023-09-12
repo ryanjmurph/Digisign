@@ -56,6 +56,7 @@ CREATE TABLE posts (
     web_link VARCHAR(255) NULL,
     state ENUM('DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'WITHDRAWN') DEFAULT 'DRAFT',
     created_by INT NULL,
+    display_time INT NULL,
     INDEX user_id (created_by),
     FOREIGN KEY (created_by)
         REFERENCES users (id)

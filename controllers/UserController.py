@@ -77,15 +77,6 @@ def list_users():
 
     
     
-    # user = user_instance.readFromTxt()
-    # users = user.all()
-    
-    # if (user.get_type()!= "ADMINISTRATOR"):
-    #     error_message = "This tab can only be accessed by an admin user"
-    #     return render_template("users/error.html", error_message = error_message)
-
-    
-
 
 @controller.route("/<int:id>/edit", methods=["GET"])
 @login_required

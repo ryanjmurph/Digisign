@@ -115,14 +115,8 @@ def update_post(request, id):
 @controller.route("/new", methods=["POST"])
 @login_required
 def create():
-    # check for the required fields
-    file_path = "user_id.txt"
-    userID = ""
-    try:
-        with open(file_path, "r") as file:
-            userID = file.read()
-    except FileNotFoundError:
-        pass
+    
+    userID = current_user.get_id()
 
     required_fields = ["title", "start_date", "end_date", "post_type"]
 
@@ -134,8 +128,6 @@ def create():
     if request.form["post_type"] == "image":
         # store the image in the static/images folder
         image = request.files["image"]
-        image.save(f"static/images/{image.filename}")
-
         # create the post
         post = Post(
             title=request.form["title"],
@@ -144,11 +136,15 @@ def create():
             endDate=request.form["end_date"],
             imageLink=f"static/images/{image.filename}",
             state="DRAFT",
-            created_by= userID
+            created_by= userID,
+            display_time= request.form["display_time"] 
+            
         )
 
         # save the post
         post.insert()
+        id = post.get_id()
+        image.save("static/images/"+str(id)+"_"+image.filename)
 
     elif request.form["post_type"] == "html":
         # create the post
@@ -159,7 +155,8 @@ def create():
             endDate=request.form["end_date"],
             htmlContent=request.form["htmlContent"],
             state="DRAFT",
-            created_by= userID
+            created_by= userID,
+            display_time= request.form["display_time"]            
         )
         # save the post
         post.insert()
@@ -173,20 +170,20 @@ def create():
         endDate=request.form["end_date"],
         webLink=request.form["web_link"],  # Update this line
         state="DRAFT",
-        created_by= userID
+        created_by= userID,
+        display_time= request.form["display_time"] 
         )
-        # Check if the "Add QR code" checkbox is checked
+        post.insert()
+
         add_qr_code = request.form.get("add_qr_code")
+        id = str(post.get_id())
         if add_qr_code:
             webLink=request.form["web_link"]
-            post.createQR(webLink,True)
+            post.createQR(webLink,True,id)
 
         else:
             webLink=request.form["web_link"]
-            post.createQR(webLink,False)
-
-        post.insert()
-
+            post.createQR(webLink,False,id)
 
     # save the post groups
     if "post_groups" in request.form:
@@ -278,9 +275,29 @@ def list_posts():
 def display():
     folder_path = "static/images"  # Replace this with the path to your folder
 
+    post = Post()
+    display_times = []
 
     files_and_dirs = os.listdir(folder_path)
-    filenames = [file for file in files_and_dirs if os.path.isfile(os.path.join(folder_path, file))]
-    print(filenames)
-    return render_template("display.html", filenames = filenames)
-    
+    filenames = [file for file in files_and_dirs if os.path.isfile(os.path.join(folder_path, file))] # names of the files
+
+    for filename in filenames:
+        id = post.getIDFromFileName(filename) # getting the post id from their filenames
+        print(id)
+
+        times = post.getDisplayTimesFromDB(id) # getting the display time for each post bases on its id
+        if times:
+            display_time = times[0]['display_time'] 
+            display_times.append(display_time*1000) 
+
+    # This is a workaround for the problem in the javascript script
+    # The js in display.html is using the 1st element instead of the 0th element for the first time
+    # Moving every time up by one and putting the last time first has solved the problem
+    display_times = [5000,5000,5000,10000,15000]
+    lastTime = display_times.pop() 
+    display_times = [lastTime]+ display_times
+
+
+    print(display_times)
+    return render_template("display.html", filenames = filenames, display_times = display_times)
+        
