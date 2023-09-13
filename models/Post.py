@@ -113,6 +113,16 @@ class Post(Query):
             else:
                 return 0
     
+    def maxId(self):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            sql = "SELECT MAX(id) AS largest_post_id FROM posts"
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            id  = result["largest_post_id"]
+            print(id)
+            return int(id) +1
+    
     def noOfPendingPosts(self, userID):
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:

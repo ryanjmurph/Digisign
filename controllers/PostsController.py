@@ -103,7 +103,8 @@ def update_post(request, id):
 
     elif request.form["post_type"] == "link":
         updates["type"] = "WEB_LINK"
-        updates["web_link"] = request.form["webLink"]
+        print(request.form["weblink"])
+        updates["web_link"] = request.form["weblink"]
         post.updates(updates)
 
     # save the post groups
@@ -119,6 +120,8 @@ def update_post(request, id):
 def create():
     
     userID = current_user.get_id()
+    somePost = Post()
+    postid = somePost.maxId()
 
     required_fields = ["title", "start_date", "end_date", "post_type","display_time"]
 
@@ -136,7 +139,7 @@ def create():
             type="IMAGE",
             startDate=request.form["start_date"],
             endDate=request.form["end_date"],
-            imageLink=f"static/images/{image.filename}",
+            imageLink=  "static/images/" + str(postid) +"_"+ image.filename,
             state="DRAFT",
             created_by= userID,
             display_time= request.form["display_time"] 
@@ -170,7 +173,7 @@ def create():
         type="WEB_LINK",
         startDate=request.form["start_date"],
         endDate=request.form["end_date"],
-        webLink=request.form["web_link"],  # Update this line
+        webLink=request.form["web_link"], 
         state="DRAFT",
         created_by= userID,
         display_time= request.form["display_time"] 
@@ -307,7 +310,6 @@ def display():
     # This is a workaround for the problem in the javascript script
     # The js in display.html is using the 1st element instead of the 0th element for the first time
     # Moving every time up by one and putting the last time first has solved the problem
-    display_times = [5000,5000,5000,10000,15000]
     lastTime = display_times.pop() 
     display_times = [lastTime]+ display_times
 
