@@ -69,10 +69,12 @@ def list_users():
         return render_template("users/list.html", users=users)
     else:
         user = current_user 
+        id = current_user.get_id()
         if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
             posts = [] 
             posts = Post().where("created_by", id).get()
-            print(posts)
+
+
         return render_template("users/edit.html", user=user, posts=posts)
 
     
@@ -127,4 +129,5 @@ def update_user(id):
             return redirect(url_for("users.view_user", id=id))
 
     flash("User updated successfully", "success")
+
     return redirect(url_for("users.view_user", id=id))
