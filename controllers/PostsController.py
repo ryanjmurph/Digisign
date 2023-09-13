@@ -34,7 +34,8 @@ def show_edit_page(id):
 
 def update_post(request, id):
     # check for the required fields
-    required_fields = ["title", "start_date", "end_date", "post_type"]
+    required_fields = ["title", "start_date", "end_date", "post_type", "display_time"]
+
 
     for field in required_fields:
         if field not in request.form:
@@ -52,6 +53,7 @@ def update_post(request, id):
         "type": "",
         "start_date": request.form["start_date"],
         "end_date": request.form["end_date"],
+        "display_time" : request.form["display_time"]
     }
 
     # check what attributes have changed
@@ -118,7 +120,7 @@ def create():
     
     userID = current_user.get_id()
 
-    required_fields = ["title", "start_date", "end_date", "post_type"]
+    required_fields = ["title", "start_date", "end_date", "post_type","display_time"]
 
     for field in required_fields:
         if field not in request.form:
