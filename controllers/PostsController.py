@@ -270,6 +270,18 @@ def list_posts():
         "posts/admin/list.html", posts=posts, activeFilters=activeFilters
     )
 
+@controller.route("/<int:id>/delete")
+@login_required
+def delete(id):
+    print("Hello")
+    post = Post()
+    post.deletePost(id)
+    
+    return redirect(url_for('posts.list_posts'))
+    
+    
+
+
 @controller.route("/display")
 @login_required
 def display():

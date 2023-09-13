@@ -77,9 +77,10 @@
                                 <a href="/posts/{{post.id}}/edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="/posts/{{post.id}}/delete" class="text-danger">
+                                <a href="/posts/{{post.id}}/delete" class="text-danger" onclick="return confirm('Are you sure you want to delete this post?');">
                                     <i class="bi bi-trash"></i>
                                 </a>
+                                
                                 {% endif %}
                             </div>
                         </td>

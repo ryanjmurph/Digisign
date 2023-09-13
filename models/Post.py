@@ -124,7 +124,13 @@ class Post(Query):
                 return result['COUNT(*)']
             else:
                 return 0
- 
+    
+    def deletePost(self,id):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:   
+             sql = "DELETE FROM posts WHERE id = %s"
+             cursor.execute(sql, (id))
+                 
 
 
     def insert(self):
