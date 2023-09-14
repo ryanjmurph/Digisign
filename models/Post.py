@@ -31,6 +31,8 @@ class Post(Query):
         },
     }
 
+    fillable = ["id","title","type","start_date","end_date","image_link","html_content","web_link","state","created_by","created_at","updated_at"]
+
     connection = MYSQL().get_connection()
 
     def __init__(
@@ -166,6 +168,13 @@ class Post(Query):
                 sql = f"INSERT INTO {self.relationship['groups']['table']} (post_id, group_id) VALUES (%s, %s)"
                 cursor.execute(sql, (self.id, group))
                 connection.commit()
+
+    def get_groups(self):
+        with connection.cursor() as cursor:
+            sql = f"SELECT * FROM {self.relationship['groups']['table']} WHERE {self.relationship['groups']['foreign_key']} = %s"
+            cursor.execute(sql, (self.id))
+            result = cursor.fetchall()
+            return result
 
     def filter_by_id(self, id):
         with connection.cursor() as cursor:

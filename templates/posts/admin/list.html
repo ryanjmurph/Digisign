@@ -97,7 +97,7 @@
                         </p>
                         {% endif %}
 
-                        {% if post.state == 'APPROVED' %}
+                        {% if post.state == 'APPROVED' or post.state == 'PUBLISHED' %}
                         <p class="text-success">
                             <strong>{{post.state}}</strong>
                         </p>
@@ -116,16 +116,7 @@
                     <td>
                         <div class="flex text-decoration-none">
 
-
-                            {% if post.state == 'DRAFT' %}
-                            <a href="/posts/{{post.id}}/edit">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="/posts/{{post.id}}/delete" class="text-danger">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                            {% endif %}
-                            {% if post.state == 'APPROVED' %}
+                            {% if post.state == 'APPROVED' or post.state == 'DRAFT' or post.state == 'PUBLISHED'  %}
                             <a href="/posts/{{post.id}}/edit">
                                 <i class="bi bi-pencil"></i>
                             </a>

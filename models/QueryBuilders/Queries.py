@@ -29,16 +29,16 @@ class Query(JoinRelationship):
     def addLimit(self, limit):
         self.limit_clause = f"LIMIT {limit}"
         return self
-    
+
     def getCasts(self):
         casts = getattr(self, "casts", {})
         return casts
-    
-    def isAttributeCastable(self, casts,attribute):
+
+    def isAttributeCastable(self, casts, attribute):
         return attribute in casts.keys()
-    
-    def castAttribute(self, casts,attribute,value):
-        if self.isAttributeCastable(casts,attribute):
+
+    def castAttribute(self, casts, attribute, value):
+        if self.isAttributeCastable(casts, attribute):
             if casts[attribute] == "int":
                 return int(value)
             elif casts[attribute] == "float":
@@ -52,7 +52,18 @@ class Query(JoinRelationship):
         else:
             return value
 
-    
+    def getFillableColumns(self):
+        if self.__getattribute__("fillable"):
+            return self.fillable
+        else:
+            with self.getDatabaseConnection().cursor() as cursor:
+                cursor.execute(f"SHOW COLUMNS FROM {self.getTableName()}")
+                result = cursor.fetchall()
+                columns = []
+                for column in result:
+                    columns.append(column["Field"])
+                return columns
+
     def save(self):
         connection = self.getDatabaseConnection()
         casts = self.getCasts()
@@ -67,7 +78,7 @@ class Query(JoinRelationship):
         for key in self.__dict__:
             if key == "id":
                 continue
-            if self.isAttributeCastable(casts,key):
+            if self.isAttributeCastable(casts, key):
                 sql += f"{self.castAttribute(casts,key,self.__dict__[key])}, "
             else:
                 sql += f"'{self.__dict__[key]}', "
@@ -86,8 +97,9 @@ class Query(JoinRelationship):
         if hasattr(self, "connection"):
             return self.connection
 
-        raise Exception("Database connection not found in the Model being extended")
-    
+        raise Exception(
+            "Database connection not found in the Model being extended")
+
     def find(self, id):
         connection = self.getDatabaseConnection()
 
@@ -117,17 +129,28 @@ class Query(JoinRelationship):
 
         clauses_string = f"{where_clause} {sort_clause} {limit_clause}"
         return clauses_string
-    
-    def prepareValues(self,values):
+
+    def prepareValues(self, values):
+
+        # create object copy of values
+        values = values.copy()
+
         # for insert and update queries, we cast any values in the dict to the correct type
         casts = self.getCasts()
+        fillable = self.getFillableColumns()
+        to_delete = []
         for key in values:
-            if self.isAttributeCastable(casts,key):
-                values[key] = self.castAttribute(casts,key,values[key])
+            if key not in fillable:
+                to_delete.append(key)
+                continue
+            if self.isAttributeCastable(casts, key):
+                values[key] = self.castAttribute(casts, key, values[key])
 
+        for key in to_delete:
+            del values[key]
         return values
-    
-    def makeValuesSafe(self,values):
+
+    def makeValuesSafe(self, values):
         # if value is a string, escape it to prevent sql injection
         # if value is a number, leave it as it is
         # if value is None, set it to NULL
@@ -140,22 +163,26 @@ class Query(JoinRelationship):
 
         return values
 
-    def update(self, data):
-        if not self.id:
+    def update(self, data=None):
+        if not self.id or self.id is None:
             raise Exception("Cannot update a record without an id")
-        
+
+        print(f"self.id: {self.id}")
+        if data is None:
+            data = self.__dict__
+
         data = self.prepareValues(data)
         data = self.makeValuesSafe(data)
 
         sql = f"UPDATE {self.getTableName()} SET "
-        
+
         for key in data:
             sql += f"{key} = {data[key]}, "
         sql = sql[:-2]
 
         sql += f" WHERE id = {self.id}"
 
-        print(f"SQL: {sql}")
+        print(f"\n\nSQL: {sql}\n\n")
 
         connection = self.getDatabaseConnection()
 
@@ -193,13 +220,25 @@ class Query(JoinRelationship):
 
     def snake_case(self, string):
         return re.sub(r"(?<!^)(?=[A-Z])", "_", string).lower()
-    
-    def castResultToModel(self,result):
+
+    def set_dict_to_model_attributes(self, dictionary_attributes):
+        # if fillable in self, only set the attributes in fillable
+        # else, set only the attributes in the dict
+        if hasattr(self, "fillable"):
+            for key in self.fillable:
+                if key in dictionary_attributes:
+                    setattr(self, key, dictionary_attributes[key])
+        else:
+            for key in dictionary_attributes:
+                setattr(self, key, dictionary_attributes[key])
+
+    def castResultToModel(self, result):
         casts = self.getCasts()
         model = self.__class__()
         for key in result:
-            if self.isAttributeCastable(casts,key):
-                setattr(model,key,self.castAttribute(casts,key,result[key]))
+            if self.isAttributeCastable(casts, key):
+                setattr(model, key, self.castAttribute(
+                    casts, key, result[key]))
             else:
-                setattr(model,key,result[key])
+                setattr(model, key, result[key])
         return model

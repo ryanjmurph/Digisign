@@ -18,6 +18,10 @@
                 <input type="text" class="form-control" id="title" name="title" required value="{{post.title}}" />
             </div>
             <div class="mb-3">
+                <label for="state" class="form-label"><strong>State</strong> </label>
+                <input type="text" class="form-control" id="state" name="title" disabled value="{{post.state}}" />
+            </div>
+            <div class="mb-3">
                 <label for="groupsToDisplay" class="form-label"><strong>Groups posts will display on</strong></label>
                 {% for group in groups %}
                 <div class="form-check form-switch">
@@ -104,6 +108,20 @@
                 <input type="text" class="form-control" id="web-link" name="web_link" />
             </div>
             <button type="submit" class="btn btn-primary">Update</button>
+            
+            {% if post.state == "WITHDRAWN" or post.state == "DRAFT" %}
+            <form action="" method="POST">
+                <input type="hidden" name="state" value="PUBLISHED">
+                <button type="submit" class="btn btn-success">Publish</button>
+            </form>
+            {% endif %}
+            
+            {% if post.state == "PUBLISHED" or post.state == "APPROVED" %}
+            <form action="" method="POST">
+                <input type="hidden" name="state" value="WITHDRAWN">
+                <button type="submit" class="btn btn-danger">Withdraw</button>
+            </form>
+            {%endif%}
         </form>
     </div>
 

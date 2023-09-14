@@ -54,7 +54,7 @@ CREATE TABLE posts (
     image_link VARCHAR(255) NULL,
     html_content MEDIUMTEXT NULL,
     web_link VARCHAR(255) NULL,
-    state ENUM('DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'WITHDRAWN') DEFAULT 'DRAFT',
+    state ENUM('DRAFT', 'PENDING_APPROVAL', 'APPROVED','PUBLISHED', 'WITHDRAWN') DEFAULT 'DRAFT',
     created_by INT NULL,
     INDEX user_id (created_by),
     FOREIGN KEY (created_by)

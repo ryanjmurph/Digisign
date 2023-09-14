@@ -58,7 +58,9 @@ class User(Query):
             else:
                 return None
     
-    def isModerator(self, id):
+    def isModerator(self, id=None):
+        if id is None:
+            id = self.id
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
             sql = "SELECT COUNT(*) FROM group_moderators WHERE user_id = %s"
