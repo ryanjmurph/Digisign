@@ -17,7 +17,7 @@ controller = Blueprint("posts", __name__, template_folder="templates")
 @controller.route("/", methods=["GET"])
 @login_required
 def index():
-    posts = Post.all()
+    posts = Post().all()
     return render_template("posts/index.html", posts=posts)
 
 
@@ -28,7 +28,7 @@ def show_edit_page(id):
     if request.method == "POST" and request.form["_method"].upper() == "PUT":
         return update_post(request, id)
 
-    post = Post.find(id)
+    post = Post().find(id)
     return render_template("posts/edit.html", post=post, groups=Group.all())
 
 
@@ -229,7 +229,7 @@ def list_posts():
     policy = PostPolicy(user)
 
     if policy.canViewAdminPostList():
-        userposts = Post.all()
+        userposts = Post().all()
     elif policy.canViewPostList():
         userposts = Post.postsCreatedBy(current_user.get_id())
     else:

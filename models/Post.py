@@ -2,7 +2,6 @@
 # 14/08/2023
 # Post database model using Pysql
 
-from datetime import datetime
 from database.database import MYSQL
 from models.QueryBuilders.Queries import Query
 import qrcode
@@ -26,7 +25,7 @@ class Post(Query):
 
     relationship = {
         "groups": {
-            "table": "post_group",
+            "table": "post_groups_subscription",
             "foreign_key": "post_id",
             "local_key": "id",
         },
@@ -42,7 +41,7 @@ class Post(Query):
         startDate=None,
         endDate=None,
         imageLink=None,
-        created_by = None,
+        created_by=None,
         htmlContent=None,
         webLink=None,
         state=None,
@@ -70,59 +69,49 @@ class Post(Query):
 
         return self
 
-    def all():
+    def all(self):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts ORDER BY id DESC LIMIT 30"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
-    
-    def postsWithID(id):
+
+    def postsWithID(self, id):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts WHERE id = %s"
-            cursor.execute(sql,(id))
-            result = cursor.fetchall()
-            return result
-        
-    def postsCreatedBy(id):
-        with connection.cursor() as cursor:
-            sql = "SELECT * FROM posts WHERE created_by = %s"
-            cursor.execute(sql,(id))
+            cursor.execute(sql, (id))
             result = cursor.fetchall()
             return result
 
-    def find(id):
+    def postsCreatedBy(self, id):
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM posts WHERE id=%s"
+            sql = "SELECT * FROM posts WHERE created_by = %s"
             cursor.execute(sql, (id))
-            result = cursor.fetchone()
-            # return instance of the post
-            return Post().createInstance(result)
-        
-    def noOfPosts(self, userID):
+            result = cursor.fetchall()
+            return result
+
+    def no_of_posts(self, user_Id):
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
             sql = "SELECT COUNT(*) FROM posts WHERE created_by=%s"
-            cursor.execute(sql, (userID,))
+            cursor.execute(sql, (user_Id,))
             result = cursor.fetchone()
             if result is not None:
                 return result['COUNT(*)']
             else:
                 return 0
-    
-    def noOfPendingPosts(self, userID):
+
+    def no_of_pending_posts(self, user_Id):
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
-            
+
             sql = "SELECT COUNT(*) FROM posts WHERE created_by = %s AND state != 'APPROVED'"
-            cursor.execute(sql, (userID,))
+            cursor.execute(sql, (user_Id,))
             result = cursor.fetchone()
             if result is not None:
                 return result['COUNT(*)']
             else:
                 return 0
- 
-
 
     def insert(self):
         with connection.cursor() as cursor:
@@ -174,64 +163,62 @@ class Post(Query):
     def save_groups(self, groups):
         for group in groups:
             with connection.cursor() as cursor:
-                sql = "INSERT INTO post_group (post_id, group_id) VALUES (%s, %s)"
+                sql = f"INSERT INTO {self.relationship['groups']['table']} (post_id, group_id) VALUES (%s, %s)"
                 cursor.execute(sql, (self.id, group))
                 connection.commit()
 
-    def filter_by_id(id):
+    def filter_by_id(self, id):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts WHERE id=%s"
             cursor.execute(sql, (id))
             result = cursor.fetchall()
             return result
 
-    def filter_by_title(title):
+    def filter_by_title(self, title):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts WHERE title=%s"
             cursor.execute(sql, (title))
             result = cursor.fetchall()
             return result
 
-    def filter_by_type(type):
+    def filter_by_type(self, type):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts WHERE type=%s"
             cursor.execute(sql, (type))
             result = cursor.fetchall()
             return result
 
-    def filter_by_state(type):
+    def filter_by_state(self, type):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts WHERE state=%s"
             cursor.execute(sql, (type))
             result = cursor.fetchall()
             return result
 
-    def filter_start_date(start_date):
+    def filter_start_date(self, start_date):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts WHERE start_date=%s"
             cursor.execute(sql, (start_date))
             result = cursor.fetchall()
             return result
 
-    def filter_end_date(end_date):
+    def filter_end_date(self, end_date):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM posts WHERE end_date=%s"
             cursor.execute(sql, (end_date))
             result = cursor.fetchall()
             return result
-        
+
     def associateDevices(self, devices):
         self.device_id = device_id
         return self
 
-    
-
     @staticmethod
-    def createQR(webLink,code):
+    def createQR(webLink, code):
         if code:
-            qr = qrcode.QRCode(version = 1, box_size = 5, border =1)
+            qr = qrcode.QRCode(version=1, box_size=5, border=1)
             qr.add_data(webLink)
-            qr.make(fit = True)
+            qr.make(fit=True)
             img = qr.make_image()
             name = webLink+"qr.jpg"
             img.save("static/images/"+name)
