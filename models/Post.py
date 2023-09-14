@@ -6,6 +6,7 @@ from datetime import datetime
 from database.database import MYSQL
 from models.QueryBuilders.Queries import Query
 import qrcode
+import os
 
 connection = MYSQL().get_connection()
 
@@ -130,6 +131,14 @@ class Post(Query):
             cursor.execute(sql, (id))
             result = cursor.fetchone()
             return result["web_link"]
+        
+    def getDisplayTimeFromDB(self, id):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            sql = "SELECT display_time from posts where id = %s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchone()
+            return result["display_time"]
 
     
     def noOfPendingPosts(self, userID):
@@ -268,7 +277,22 @@ class Post(Query):
             else:
                 break
         return int(result)
-
+    
+    def removeFromDevice(self, id):
+    
+        image_directory = "static/images"
+        for filename in os.listdir(image_directory):
+            if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".txt"):
+                parts = filename.split("_")
+                if len(parts) == 2:
+                    try:
+                        file_post_id = int(parts[0])
+                        if file_post_id == id:
+                            file_path = os.path.join(image_directory, filename)
+                            os.remove(file_path)
+                            print(f"Removed image: {filename}")
+                    except ValueError:
+                        pass
 
     @property
     def get_display_time(self):
@@ -279,14 +303,15 @@ class Post(Query):
 
     @staticmethod
     def createQR(webLink,code,id):
+        stringId = str(id)
         if code:
             qr = qrcode.QRCode(version = 1, box_size = 5, border =1)
             qr.add_data(webLink)
             qr.make(fit = True)
             img = qr.make_image()
-            name = id + "_"+ webLink+"qr.jpg"
+            name = stringId + "_"+ webLink+"qr.jpg"
             img.save("static/images/"+name)
         else:
-            file = "static/images/"+ id + "_"+webLink+".txt"
+            file = "static/images/"+ stringId + "_"+webLink+".txt"
             open(file, 'w').close()
 

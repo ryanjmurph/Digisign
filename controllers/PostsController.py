@@ -28,13 +28,15 @@ def show_edit_page(id):
 
     post = Post()
     link = post.getLink(id)
+    time = post.getDisplayTimeFromDB(id)
+    print(time)
     if link == None:
         link = ""
     if request.method == "POST" and request.form["_method"].upper() == "PUT":
         return update_post(request, id)
 
     post = Post.find(id)
-    return render_template("posts/edit.html", post=post, groups=Group.all(), link = link)
+    return render_template("posts/edit.html", post=post, groups=Group.all(), link = link, time = time )
 
 
 def update_post(request, id):
@@ -50,7 +52,6 @@ def update_post(request, id):
             return abort(400, f"Required field {field} is missing")
 
     post = Post.find(id)
-    print(id)
 
     if post is None:
         return abort(404, f"Post with id {request.form['id']} not found")
@@ -104,7 +105,7 @@ def update_post(request, id):
 
         # update the post
         post.updates(updates)
-
+        
     elif request.form["post_type"] == "html":
         updates["type"] = "HTML"
         updates["html_content"] = request.form["htmlContent"]
@@ -112,13 +113,21 @@ def update_post(request, id):
 
     elif request.form["post_type"] == "link":
         updates["type"] = "WEB_LINK"
-        print(request.form["web_link"])
+        
+        add_qr_code = request.form.get("add_qr_code")
+        post.removeFromDevice(id)
+
+        if add_qr_code:
+            webLink=request.form["web_link"]
+            post.createQR(webLink,True,id)
+        else:
+            webLink=request.form["web_link"]
+            post.createQR(webLink,False,id)
+            
         updates["web_link"] = request.form["web_link"]
         post.updates(updates)
 
-
-    
-
+            
     # save the post groups
     if "post_groups" in request.form:
         post.save_groups(request.form["post_groups"])
@@ -283,6 +292,8 @@ def list_posts():
         posts = userposts
 
     # return the form in templates/posts/create.html
+    post = Post()
+    
     return render_template(
         "posts/admin/list.html", posts=posts, activeFilters=activeFilters
     )
@@ -290,9 +301,9 @@ def list_posts():
 @controller.route("/<int:id>/delete")
 @login_required
 def delete(id):
-    print("Hello")
     post = Post()
     post.deletePost(id)
+    post.removeFromDevice(id)
     
     return redirect(url_for('posts.list_posts'))
     
