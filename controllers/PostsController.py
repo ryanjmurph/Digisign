@@ -25,17 +25,24 @@ def index():
 @login_required
 def show_edit_page(id):
     # check if _method is set in the form and the value is PUT
+
+    post = Post()
+    link = post.getLink(id)
+    if link == None:
+        link = ""
     if request.method == "POST" and request.form["_method"].upper() == "PUT":
         return update_post(request, id)
 
     post = Post.find(id)
-    return render_template("posts/edit.html", post=post, groups=Group.all())
+    return render_template("posts/edit.html", post=post, groups=Group.all(), link = link)
 
 
 def update_post(request, id):
     # check for the required fields
     required_fields = ["title", "start_date", "end_date", "post_type", "display_time"]
 
+    
+    
 
     for field in required_fields:
         if field not in request.form:
@@ -43,6 +50,7 @@ def update_post(request, id):
             return abort(400, f"Required field {field} is missing")
 
     post = Post.find(id)
+    print(id)
 
     if post is None:
         return abort(404, f"Post with id {request.form['id']} not found")
@@ -80,13 +88,14 @@ def update_post(request, id):
         if newimage.filename == "":
             pass
         else:
-            updates["image_link"] = f"static/images/{request.files['image'].filename}"
+            imgName = "static/images/"+ str(id)+"_"+  request.files['image'].filename
+            updates["image_link"] = imgName
             if post.type == "IMAGE":
                 removePreviousImage = True
 
             # store the image in the static/images folder
             image = request.files["image"]
-            image.save(f"static/images/{image.filename}")
+            image.save(imgName)
 
         if removePreviousImage:
             # delete the previous image
@@ -103,9 +112,12 @@ def update_post(request, id):
 
     elif request.form["post_type"] == "link":
         updates["type"] = "WEB_LINK"
-        print(request.form["weblink"])
-        updates["web_link"] = request.form["weblink"]
+        print(request.form["web_link"])
+        updates["web_link"] = request.form["web_link"]
         post.updates(updates)
+
+
+    
 
     # save the post groups
     if "post_groups" in request.form:

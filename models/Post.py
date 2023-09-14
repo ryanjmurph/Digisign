@@ -122,6 +122,15 @@ class Post(Query):
             id  = result["largest_post_id"]
             print(id)
             return int(id) +1
+        
+    def getLink(self, id):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            sql = "SELECT web_link from posts where id = %s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchone()
+            return result["web_link"]
+
     
     def noOfPendingPosts(self, userID):
         connection = self.getDatabaseConnection()
