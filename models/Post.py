@@ -228,6 +228,16 @@ class Post(Query):
             cursor.execute(sql, (id))
             result = cursor.fetchall()
             return result  
+        
+    def getIDFromFileName(self,fileName):
+        result = ""
+        for letter in fileName:
+            if(letter!= "_"):
+                result = result + letter
+            else:
+                break
+        return int(result)
+    
     
     def associateDevices(self, devices):
         self.device_id = device_id
@@ -242,14 +252,15 @@ class Post(Query):
         return self.id
 
     @staticmethod
-    def createQR(webLink, code):
+    def createQR(webLink,code,id):
+        stringId = str(id)
         if code:
-            qr = qrcode.QRCode(version=1, box_size=5, border=1)
+            qr = qrcode.QRCode(version = 1, box_size = 5, border =1)
             qr.add_data(webLink)
-            qr.make(fit=True)
+            qr.make(fit = True)
             img = qr.make_image()
-            name = webLink+"qr.jpg"
+            name = stringId + "_"+ webLink+"qr.jpg"
             img.save("static/images/"+name)
         else:
-            file = "static/images/"+webLink+".txt"
+            file = "static/images/"+ stringId + "_"+webLink+".txt"
             open(file, 'w').close()

@@ -130,8 +130,6 @@ def create():
     if request.form["post_type"] == "image":
         # store the image in the static/images folder
         image = request.files["image"]
-        image.save(f"static/images/{image.filename}")
-
         # create the post
         post = Post(
             title=request.form["title"],
@@ -164,26 +162,28 @@ def create():
 
     elif request.form["post_type"] == "link":
         # create the post
-        post = Post(
+            post = Post(
             title=request.form["title"],
             type="WEB_LINK",
             startDate=request.form["start_date"],
             endDate=request.form["end_date"],
-            webLink=request.form["web_link"],  # Update this line
+            webLink=request.form["web_link"], 
             state="DRAFT",
-            created_by=current_user.get_id()
-        )
-        # Check if the "Add QR code" checkbox is checked
-        add_qr_code = request.form.get("add_qr_code")
-        if add_qr_code:
-            web_link = request.form["web_link"]
-            post.createQR(web_link, True)
+            created_by= current_user.get_id(),
+            display_time= request.form["display_time"] 
+            )
+            post.insert()
 
-        else:
-            web_link = request.form["web_link"]
-            post.createQR(web_link, False)
+            add_qr_code = request.form.get("add_qr_code")
+            id = str(post.get_id())
+            print(id)
+            if add_qr_code:
+                webLink=request.form["web_link"]
+                post.createQR(webLink,True,id)
 
-        post.insert()
+            else:
+                webLink=request.form["web_link"]
+                post.createQR(webLink,False,id)
 
     # save the post groups
     if "post_groups" in request.form:
