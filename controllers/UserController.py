@@ -61,11 +61,14 @@ def new_user():
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_users():
-    
     policy = UserAccessPolicy(user = current_user)
 
     if policy.canViewAllUsers():
         users = User().all()
+        if policy.canApproveUsers():
+            pending_users = User().where("state", "APPROVAL_REQUIRED").get()
+            return render_template("users/list.html", users=users,pending_user_approvals=pending_users)
+
         return render_template("users/list.html", users=users)
     else:
         user = current_user 
@@ -132,6 +135,7 @@ def update_user(id):
         try:
             user.update(fields_changing)
         except Exception as e:
+            print("Error is ",e)
             flash("An error occured, kindly try again", "error")
             return redirect(url_for("users.view_user", id=id))
 

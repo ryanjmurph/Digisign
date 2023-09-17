@@ -75,5 +75,6 @@ CREATE TABLE post_groups_subscription (
     INDEX post_id (post_id),
     FOREIGN KEY (post_id)
         REFERENCES posts (id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    state ENUM('PENDING_APPROVAL', 'APPROVED','REJECTED') DEFAULT 'PENDING_APPROVAL',
 )
