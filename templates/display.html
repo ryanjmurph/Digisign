@@ -38,23 +38,27 @@
         var imageElement = document.getElementById('imageDisplay');
         var websiteIframe = document.getElementById('websiteIframe');
         var filenames = {{ filenames | tojson | safe }}; // Gets the filenames from flask
+        var display_times = {{ display_times | tojson | safe }}; // Gets the associated display tiems from flask
         var currentImageIndex = 0;
-
+        var interval = null;
+    
         function displayNextImage() {
             var imageName = filenames[currentImageIndex];
             var imageUrl = '/static/images/' + imageName;
             imageElement.src = '';
-            websiteIframe.src = 'about:blank';// make both of these blank after a new image
-
+            websiteIframe.src = 'about:blank'; // initializing all of the html elemnts
+           
             if (imageName.includes('qr')) {
-                var websiteName = imageName.split('qr.jpg')[0];
-                websiteIframe.src = 'https://' + websiteName;
+                var fname = imageName.split('qr.jpg')[0];
+                var websiteName = fname.split('_')[1];
+                websiteIframe.src = 'https://' + websiteName; // website url from file name
 
                 var qrCodeImage = document.createElement('img'); // create qr code image
                 qrCodeImage.id = 'qrCodeImage';
-                qrCodeImage.src = imageUrl;
+                qrCodeImage.src = imageUrl; 
 
-                var container = document.querySelector('.centered-image'); 
+                var container = document.querySelector('.centered-image');  // Find the container element with the class 'centered-image'
+
 
                 
                 var existingQrCodeImage = document.getElementById('qrCodeImage');
@@ -62,9 +66,9 @@
                     container.removeChild(existingQrCodeImage);// remove the QR code if it exixts already
                 }
 
-                container.appendChild(qrCodeImage);
+                container.appendChild(qrCodeImage); // add it if it doesn't
             } else {
-                // Hide the QR code image if it's not a QR code
+                // hide the QR code image if it's not a QR code
                 var qrCodeImage = document.getElementById('qrCodeImage');
                 if (qrCodeImage) {
                     qrCodeImage.style.display = 'none'; // hide the qr code after displayed
@@ -73,17 +77,22 @@
                 imageElement.src = imageUrl; 
             }
             
-            if(imageName.includes('.txt')){ // handles what happens if the user doesnt want to add a QR code
-                var websiteName = imageName.split('.txt')[0];
+            if (imageName.includes('.txt')) {
+                var fname = imageName.split('txt')[0];
+                var websiteName = fname.split('_')[1];
                 websiteIframe.src = 'https://' + websiteName; 
             }
-
-
-            currentImageIndex = (currentImageIndex + 1) % filenames.length; // next file
+    
+            currentImageIndex = (currentImageIndex + 1) % filenames.length; // get the new image
+            var currentTime = display_times[currentImageIndex]; // Get the new time
+    
+            
+            clearInterval(interval); // stop the timer 
+            interval = setInterval(displayNextImage, currentTime); //  displays the image for a certain amnt of time
         }
-
+    
         displayNextImage();
-        setInterval(displayNextImage, 10000); // change to change the time it takes for images to cycle
     </script>
+    
 </body>
 </html>

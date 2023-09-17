@@ -19,6 +19,7 @@ class Post(Query):
     html_content = None
     web_link = None
     state = "DRAFT"
+    display_time = None
     created_by = None
     created_at = None
     updated_at = None
@@ -31,7 +32,7 @@ class Post(Query):
         },
     }
 
-    fillable = ["id","title","type","start_date","end_date","image_link","html_content","web_link","state","created_by","created_at","updated_at"]
+    fillable = ["id","title","type","start_date","end_date","image_link","html_content","web_link","state","display_time","created_by","created_at","updated_at"]
 
     connection = MYSQL().get_connection()
 
@@ -44,6 +45,7 @@ class Post(Query):
         endDate=None,
         imageLink=None,
         created_by=None,
+        display_time = None,
         htmlContent=None,
         webLink=None,
         state=None,
@@ -55,6 +57,7 @@ class Post(Query):
         self.end_date = endDate
         self.image_link = imageLink
         self.created_by = created_by
+        self.display_time = display_time
         self.html_content = htmlContent
         self.web_link = webLink
         self.state = state
@@ -117,7 +120,7 @@ class Post(Query):
 
     def insert(self):
         with connection.cursor() as cursor:
-            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)"
+            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by, display_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
 
             cursor.execute(
                 sql,
@@ -130,7 +133,8 @@ class Post(Query):
                     self.html_content,
                     self.web_link,
                     self.state,
-                    self.created_by
+                    self.created_by,
+                    self.display_time
                 ),
             )
             connection.commit()
@@ -218,9 +222,24 @@ class Post(Query):
             result = cursor.fetchall()
             return result
 
+    def getDisplayTimesFromDB(self,id):
+        with connection.cursor() as cursor:
+            sql = "SELECT display_time FROM posts WHERE id = %s"
+            cursor.execute(sql, (id))
+            result = cursor.fetchall()
+            return result  
+    
     def associateDevices(self, devices):
         self.device_id = device_id
         return self
+    
+    @property
+    def get_display_time(self):
+        return int(self.display_time)
+    
+
+    def get_id(self):
+        return self.id
 
     @staticmethod
     def createQR(webLink, code):
