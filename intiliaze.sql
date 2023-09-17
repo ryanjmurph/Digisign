@@ -54,7 +54,7 @@ CREATE TABLE posts (
     image_link VARCHAR(255) NULL,
     html_content MEDIUMTEXT NULL,
     web_link VARCHAR(255) NULL,
-    state ENUM('DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'WITHDRAWN') DEFAULT 'DRAFT',
+    state ENUM('DRAFT', 'PENDING_APPROVAL', 'APPROVED','PUBLISHED', 'WITHDRAWN') DEFAULT 'DRAFT',
     created_by INT NULL,
     INDEX user_id (created_by),
     FOREIGN KEY (created_by)
@@ -75,5 +75,6 @@ CREATE TABLE post_groups_subscription (
     INDEX post_id (post_id),
     FOREIGN KEY (post_id)
         REFERENCES posts (id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    state ENUM('PENDING_APPROVAL', 'APPROVED','REJECTED') DEFAULT 'PENDING_APPROVAL',
 )

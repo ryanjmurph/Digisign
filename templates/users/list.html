@@ -1,7 +1,11 @@
 {% extends "layouts/base.html" %}
 {% block content %}
 
-<a href="/posts/new" class="btn btn-primary">Create New User</a>
+{% if current_user.type == 'ADMINISTRATOR' and pending_user_approvals|length > 0 %}
+{%include "users/admin/user-approvals-list.html"%}
+{% endif %}
+
+<a href="{{url_for('users.create_user')}}" class="btn btn-primary">Create New User</a>
 
 <!-- Filter by drop down to allow searh for the table on the backend, it should have 3 columns: filter by (options include id, groups, active and date), the filter value and finally the current filters applied -->
 <div class="card my-4">

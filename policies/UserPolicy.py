@@ -16,6 +16,9 @@ class Policy(Query):
     def __init__(self,user):
         self.user = user
 
+    def can_create_user(self):
+        return self.isAnAdministator()
+
     def canViewAllUsers(self):
         return self.isAnAdministator()
     
@@ -28,7 +31,8 @@ class Policy(Query):
     def canCreateDevice(self):
         return self.isAnAdministator()
     
-
+    def canApproveUsers(self):
+        return self.isAnAdministator()
     
     # A user can only edit their own profile or if they are an administrator
     def canEditUser(self,user_id):

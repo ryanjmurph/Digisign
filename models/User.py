@@ -17,6 +17,9 @@ class User(Query):
 
     connection = MYSQL().get_connection()
 
+    fillable = ["name", "email", "password",
+                "type", "state", "created_at", "updated_at"]
+
     def __init__(
         self,
         id=None,
@@ -57,12 +60,14 @@ class User(Query):
                 return self.setPropertiesOfUser(result)
             else:
                 return None
-    
-    def isModerator(self, id):
+
+    def isModerator(self, id=None):
+        if id is None:
+            id = self.id
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
             sql = "SELECT COUNT(*) FROM group_moderators WHERE user_id = %s"
-            cursor.execute(sql ,(id))
+            cursor.execute(sql, (id))
             result = cursor.fetchall()
             return result
 
@@ -128,13 +133,13 @@ class User(Query):
     @property
     def is_anonymous(self):
         return False
-    
+
     def is_active(self):
         return self.state == "ACTIVE"
 
     def get_id(self):
         return str(self.id)
-    
+
     def get_email(self):
         return str(self.email)
 
@@ -143,11 +148,11 @@ class User(Query):
 
     def get_state(self):
         return str(self.state)
-    
+
     def get_password(self):
         return str(self.password)
-    
-    def readFromTxt(self): 
+
+    def readFromTxt(self):
         try:
             file_path = "user_id.txt"
             with open(file_path, "r") as file:
@@ -155,7 +160,7 @@ class User(Query):
         except FileNotFoundError:
             pass
         return self.findById(userID)
-    
+
     def __dict__(self):
         return {
             "id": self.id,
@@ -166,5 +171,3 @@ class User(Query):
             "updated_at": self.updated_at,
             "state": self.state,
         }
-
-        

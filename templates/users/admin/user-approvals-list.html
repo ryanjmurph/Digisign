@@ -1,0 +1,56 @@
+<div class="mb-4">
+    <h2>Pending Approvals</h2>
+    <p>These users have not yet been approved by an administrator.</p>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">State</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+    
+                    {% for user in pending_user_approvals %}
+                    <tr>
+                        <th scope="row">{{user.id}}</th>
+                        <td>{{user.email}}</td>
+                        <td><span class="badge bg-warning">{{user.state}}</span></td>
+                        <td>
+                            {% if user.type == 'ADMINISTRATOR' %}
+                            <p class="text-success text-decoration-none">
+                                <strong>{{user.type}}</strong>
+                            </p>
+                            {% endif %}
+    
+                            {% if user.type == 'USER' %}
+                            <p class="text-primary">
+                                <strong>{{user.type}}</strong>
+                            </p>
+                            {% endif %}
+    
+                            {% if user.type == 'DEVICE' %}
+                            <p class="text-secondary">
+                                <strong>{{user.type}}</strong>
+                            </p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{user.created_at}}
+                        </td>
+                        <td>
+                            <div class="flex text-decoration-none">
+                                <a href="/users/{{user.id}}/edit" class="btn btn-secondary">Edit</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

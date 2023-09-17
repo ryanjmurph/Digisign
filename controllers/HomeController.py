@@ -24,7 +24,7 @@ def dashboard():
     except FileNotFoundError:
         pass
     
-    amount = post.noOfPosts(str(current_user.get_id()))
-    pendingAmount = post.noOfPendingPosts(str(current_user.get_id()))
+    amount = post.no_of_posts(str(current_user.get_id()))
+    pendingAmount = post.no_of_pending_posts(str(current_user.get_id()))
     
     return render_template("home/dashboard.html",userID = userID, amount = amount, pendingAmount = pendingAmount)
