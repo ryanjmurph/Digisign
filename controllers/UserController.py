@@ -1,93 +1,76 @@
-from flask import Blueprint, flash, jsonify, make_response, render_template, request, redirect, url_for
+from flask import Blueprint, flash, render_template, request, redirect, url_for
 from flask_login import current_user, login_required
 from models.Post import Post
 from models.User import User
-from datetime import datetime
-import bcrypt
+from app import bcrypt
 
 from policies.UserPolicy import Policy as UserAccessPolicy
 
 controller = Blueprint("users", __name__, template_folder="templates")
 
 
-# TODO : Legacy, to decomission
-@controller.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        login_email = request.form["login_email"]
-        login_password = request.form["login_password"]
-
-        user = User()
-        result = user.find(login_email)
-
-        if result and bcrypt.checkpw(
-            login_password.encode("utf-8"), result["password"].encode("utf-8")
-        ):
-            return "Login successful"
-        else:
-            error_message = "Invalid email or password"
-            return render_template("login.html", error_message=error_message)
-    else:
-        return render_template("login.html")
-
-
-# TODO : Legacy, to decomission
-@controller.route("/new_user", methods=["GET", "POST"])
-def new_user():
-    if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        password = request.form["password"]
-
-        new_user = User(
-            name=name,
-            email=email,
-            password=password,
-            type="USER",
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-        )
-
-        if new_user.find(email) == "not found":
-            new_user.insert()
-            return "Account created"
-        else:
-            error_message = "Email already in use"
-            return render_template("create_account.html", error_message=error_message)
-    else:
-        return render_template("create_account.html")
-
-
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_users():
-    policy = UserAccessPolicy(user = current_user)
+    policy = UserAccessPolicy(user=current_user)
 
     if policy.canViewAllUsers():
         users = User().all()
         if policy.canApproveUsers():
             pending_users = User().where("state", "APPROVAL_REQUIRED").get()
-            return render_template("users/list.html", users=users,pending_user_approvals=pending_users)
+            return render_template("users/list.html", users=users, pending_user_approvals=pending_users)
 
         return render_template("users/list.html", users=users)
     else:
-        user = current_user 
+        user = current_user
         if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
-            posts = [] 
+            posts = []
             posts = Post().where("created_by", id).get()
             print(posts)
         return render_template("users/edit.html", user=user, posts=posts)
 
-    
-    
-    # user = user_instance.readFromTxt()
-    # users = user.all()
-    
-    # if (user.get_type()!= "ADMINISTRATOR"):
-    #     error_message = "This tab can only be accessed by an admin user"
-    #     return render_template("users/error.html", error_message = error_message)
 
-    
+@controller.route("/create/user", methods=["GET"])
+@login_required
+def create_user():
+    policy = UserAccessPolicy(current_user)
+
+    if not policy.can_create_user():
+        error_message = "You do not have permission to create a user"
+        return render_template("errors/401.html", error_message=error_message)
+
+    return render_template("users/admin/create.html")
+
+
+@controller.route("/create/user", methods=["POST"])
+@login_required
+def store_user():
+    policy = UserAccessPolicy(current_user)
+    if not policy.can_create_user():
+        error_message = "You do not have permission to create a user"
+        return render_template("errors/401.html", error_message=error_message)
+
+    name = request.form["name"]
+    email = request.form["username"]
+    password = request.form["password"]
+    password_confirmation = request.form["password_confirmation"]
+    type = request.form["type"]
+
+    if password != password_confirmation:
+        flash("Passwords do not match", "error")
+        return redirect(url_for("users.create_user"))
+
+    user = User().where("email", email).first()
+    if user:
+        flash("User already exists", "error")
+        return redirect(url_for("users.create_user"))
+    pw_hash = bcrypt.generate_password_hash(password)
+
+    user = User(email=email, name=name, password=pw_hash,
+                type=type, state="APPROVED")
+    user.insert()
+    flash("User created successfully", "success")
+    return redirect(url_for("users.list_users"))
 
 
 @controller.route("/<int:id>/edit", methods=["GET"])
@@ -113,7 +96,7 @@ def view_user(id):
 @controller.route("/<int:id>/update", methods=["POST"])
 @login_required
 def update_user(id):
-    
+
     policy = UserAccessPolicy(current_user)
 
     if not policy.canEditUser(id):
@@ -122,22 +105,17 @@ def update_user(id):
 
     user = User().findById(id)
 
-    fields_changing = {}
+    fields_changing = {
+        "name": request.form["name"],
+        "email": request.form["username"],
+        "type": request.form["type"],
+        "state": request.form["state"]
+    }
 
-    fields_available = ["name", "email", "type", "password","state"]
-    for field in fields_available:
-        if request.form[field]:
-            # check the attribute in the user object. If it is different from the one in the form, update it
-            if getattr(user, field) != request.form[field]:
-                fields_changing[field] = request.form[field]
-
-    if fields_changing:
-        try:
-            user.update(fields_changing)
-        except Exception as e:
-            print("Error is ",e)
-            flash("An error occured, kindly try again", "error")
-            return redirect(url_for("users.view_user", id=id))
-
+    if request.form["password"] != "":
+        fields_changing["password"] = bcrypt.generate_password_hash(
+            request.form["password"])
+        
+    user.update(fields_changing)
     flash("User updated successfully", "success")
     return redirect(url_for("users.view_user", id=id))

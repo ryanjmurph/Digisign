@@ -16,6 +16,9 @@ class Policy(Query):
     def __init__(self,user):
         self.user = user
 
+    def can_create_user(self):
+        return self.isAnAdministator()
+
     def canViewAllUsers(self):
         return self.isAnAdministator()
     
