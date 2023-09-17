@@ -212,7 +212,7 @@ def approve_action(id):
         return abort(400, f"Invalid action {action} provided")
 
     # get the post
-    post = Post.find(id)
+    post = Post().find(id)
 
     if not post is None:
         updated_state = "APPROVED" if action == "APPROVE" else "WITHDRAWN"
