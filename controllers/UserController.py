@@ -26,7 +26,8 @@ def list_users():
         if user.get_type() == "USER" or user.get_type() == "ADMINISTRATOR":
             posts = []
             posts = Post().where("created_by", id).get()
-            print(posts)
+        else:
+            posts = []
         return render_template("users/edit.html", user=user, posts=posts)
 
 

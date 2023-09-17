@@ -54,9 +54,6 @@ def register_post():
     user = User(email=username, password=pw_hash, name=name,
                 type="USER", state="APPROVAL_REQUIRED")
 
-    #  print the class name of the user object
-    print(type(user))
-
     user.insert()
 
     login_user(user)
