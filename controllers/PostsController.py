@@ -130,8 +130,6 @@ def create():
     if request.form["post_type"] == "image":
         # store the image in the static/images folder
         image = request.files["image"]
-        image.save(f"static/images/{image.filename}")
-
         # create the post
         post = Post(
             title=request.form["title"],
@@ -140,11 +138,13 @@ def create():
             endDate=request.form["end_date"],
             imageLink=f"static/images/{image.filename}",
             state="DRAFT",
-            created_by=current_user.get_id()
+            created_by=current_user.get_id(),
+            display_time= request.form["display_time"]
         )
-
         # save the post
         post.insert()
+        id = post.get_id()
+        image.save("static/images/"+str(id)+"_"+image.filename)
 
     elif request.form["post_type"] == "html":
         # create the post
@@ -158,30 +158,32 @@ def create():
             created_by=current_user.get_id()
         )
         # save the post
-        post.insert()
+        
 
     elif request.form["post_type"] == "link":
         # create the post
-        post = Post(
+            post = Post(
             title=request.form["title"],
             type="WEB_LINK",
             startDate=request.form["start_date"],
             endDate=request.form["end_date"],
-            webLink=request.form["web_link"],  # Update this line
+            webLink=request.form["web_link"], 
             state="DRAFT",
-            created_by=current_user.get_id()
-        )
-        # Check if the "Add QR code" checkbox is checked
-        add_qr_code = request.form.get("add_qr_code")
-        if add_qr_code:
-            web_link = request.form["web_link"]
-            post.createQR(web_link, True)
+            created_by= current_user.get_id(),
+            display_time= request.form["display_time"] 
+            )
+            post.insert()
 
-        else:
-            web_link = request.form["web_link"]
-            post.createQR(web_link, False)
+            add_qr_code = request.form.get("add_qr_code")
+            id = str(post.get_id())
+            print(id)
+            if add_qr_code:
+                webLink=request.form["web_link"]
+                post.createQR(webLink,True,id)
 
-        post.insert()
+            else:
+                webLink=request.form["web_link"]
+                post.createQR(webLink,False,id)
 
     # save the post groups
     if "post_groups" in request.form:
@@ -232,11 +234,13 @@ def list_posts():
 
     user = current_user
     policy = PostPolicy(user)
+    post = Post()
 
     if policy.canViewAdminPostList():
         userposts = Post().all()
     elif policy.canViewPostList():
-        userposts = Post.postsCreatedBy(current_user.get_id())
+        id = current_user.get_id()
+        userposts = post.postsCreatedBy(id)
     else:
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)
@@ -272,8 +276,28 @@ def list_posts():
 def display():
     folder_path = "static/images"  # Replace this with the path to your folder
 
+    post = Post()
+    display_times = []
+
     files_and_dirs = os.listdir(folder_path)
-    filenames = [file for file in files_and_dirs if os.path.isfile(
-        os.path.join(folder_path, file))]
-    print(filenames)
-    return render_template("display.html", filenames=filenames)
+    filenames = [file for file in files_and_dirs if os.path.isfile(os.path.join(folder_path, file))] # names of the files
+
+    for filename in filenames:
+        id = post.getIDFromFileName(filename) # getting the post id from their filenames
+        print(id)
+
+        times = post.getDisplayTimesFromDB(id) # getting the display time for each post bases on its id
+        if times:
+            display_time = times[0]['display_time'] 
+            display_times.append(display_time*1000) 
+
+    # This is a workaround for the problem in the javascript script
+    # The js in display.html is using the 1st element instead of the 0th element for the first time
+    # Moving every time up by one and putting the last time first has solved the problem
+    lastTime = display_times.pop() 
+    display_times = [lastTime]+ display_times
+
+
+    print(display_times)
+    return render_template("display.html", filenames = filenames, display_times = display_times)
+        
