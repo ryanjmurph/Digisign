@@ -1,9 +1,5 @@
 {% extends "layouts/base.html" %}
 {% block content %}
-<div>
-    {{counts}},
-    {{permissions}}
-</div>
 <div class="row">
     <div class="col">
         <div class="card">
@@ -22,7 +18,16 @@
                 <p>Moderation Actions Required</p>
             </div>
             <div class="card-body">
-                <p>{{ pendingAmount }}</p>
+                {% if counts.pending_posts_count > 0 and counts.pending_users_count > 0 %}
+                    {% if counts.pending_posts_count > 0 %}
+                    <p>Posts Pending Approvals : {{ counts.pending_posts_count }}</p>
+                    {% endif %}
+                    {% if counts.pending_users_count > 0 %}
+                    <p>Users Pending Approvals : {{ counts.pending_users_count }} </p>
+                    {% endif %}
+                {% else %}
+                <p>No Moderation Actions Required</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -34,7 +39,7 @@
                 <p>Devices Online</p>
             </div>
             <div class="card-body">
-                <p>{{ counts.devices_online_count }}</p>
+                <p>{{ counts.device_online_count }}</p>
             </div>
         </div>
     </div>

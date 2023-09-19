@@ -2,6 +2,7 @@
 # 14/08/2023
 # Post database model using Pysql
 
+import datetime
 from database.database import MYSQL
 from models.QueryBuilders.Queries import Query
 import qrcode
@@ -248,7 +249,10 @@ class Post(Query):
                 result = cursor.fetchall()
                 return result
         else:
-            sql = "SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') ORDER BY id DESC"
+            start_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            sql = f"SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') AND start_date <= '{start_date}' AND end_date >= '{end_date}' ORDER BY id DESC"
+            print(sql)
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 result = cursor.fetchall()
