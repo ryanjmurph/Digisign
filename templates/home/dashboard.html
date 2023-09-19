@@ -1,5 +1,9 @@
 {% extends "layouts/base.html" %}
 {% block content %}
+<div>
+    {{counts}},
+    {{permissions}}
+</div>
 <div class="row">
     <div class="col">
         <div class="card">
@@ -7,10 +11,11 @@
                 <p>Active Posts</p>
             </div>
             <div class="card-body">
-                <p>{{ amount }}</p> <!-- Replace "10" with the amount variable -->
+                <p>{{ counts.active_posts_count }}</p> <!-- Replace "10" with the amount variable -->
             </div>
         </div>
     </div>
+    {% if permissions['can_view_moderation_actions'] %}
     <div class="col">
         <div class="card">
             <div class="card-header">
@@ -21,16 +26,19 @@
             </div>
         </div>
     </div>
+    {% endif %}
+    {% if permissions['can_view_devices_online'] %}
     <div class="col">
         <div class="card">
             <div class="card-header">
                 <p>Devices Online</p>
             </div>
             <div class="card-body">
-                <p>{{ amount }}</p>
+                <p>{{ counts.devices_online_count }}</p>
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 <div class="mt-4">
     <a href="{{ url_for('posts.new', userID=userID) }}" class="btn btn-primary">New Post</a>

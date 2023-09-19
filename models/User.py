@@ -66,10 +66,10 @@ class User(Query):
             id = self.id
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
-            sql = "SELECT COUNT(*) FROM group_moderators WHERE user_id = %s"
+            sql = "SELECT COUNT(*) as count FROM group_moderators WHERE user_id = %s"
             cursor.execute(sql, (id))
             result = cursor.fetchall()
-            return result
+            return result[0]['count'] > 0
 
     def findById(self, id):
         connection = self.getDatabaseConnection()
@@ -151,15 +151,14 @@ class User(Query):
 
     def get_password(self):
         return str(self.password)
-
-    def readFromTxt(self):
-        try:
-            file_path = "user_id.txt"
-            with open(file_path, "r") as file:
-                userID = file.read()
-        except FileNotFoundError:
-            pass
-        return self.findById(userID)
+    
+    def get_pending_users(self):
+        connection = self.getDatabaseConnection()
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM users WHERE state = 'PENDING'"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
 
     def __dict__(self):
         return {

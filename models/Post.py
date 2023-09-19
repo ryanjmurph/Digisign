@@ -224,6 +224,55 @@ class Post(Query):
             cursor.execute(sql, (end_date))
             result = cursor.fetchall()
             return result
+        
+    def get_active_posts(self,query=None,group_ids=None,user_id=None):
+        # if no group_ids set and no query set, return all active posts where startDate <= today and endDate >= today
+        # if group_ids set and no query set, return all active posts where startDate <= today and endDate >= today and post.id in (SELECT post_id FROM post_groups_subscription WHERE group_id IN (group_ids))
+
+        if query is not None:
+            sql = f"SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') AND {query} ORDER BY id DESC"
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result 
+        elif group_ids is not None:
+            sql = f"SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') AND id IN (SELECT post_id FROM post_groups_subscription WHERE group_id IN ({group_ids})) ORDER BY id DESC"
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result
+        elif user_id is not None:
+            sql = f"SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') AND created_by = {user_id} ORDER BY id DESC"
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result
+        else:
+            sql = "SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') ORDER BY id DESC"
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                return result
+        
+    def get_pending_posts_count(self,query=None,group_ids=None):
+        if query is not None:
+            sql = f"SELECT COUNT(*) FROM posts WHERE state = 'PENDING' AND {query} "
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchone()
+                return result["COUNT(*)"]
+        elif group_ids is not None:
+            sql = f"SELECT COUNT(*) FROM posts WHERE state = 'PENDING' AND id IN (SELECT post_id FROM post_groups_subscription WHERE group_id IN ({group_ids}))"
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchone()
+                return result["COUNT(*)"]
+        else:
+            sql = "SELECT COUNT(*) FROM posts WHERE state = 'PENDING'"
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchone()
+                return result["COUNT(*)"]
 
     def associateDevices(self, devices):
         self.device_id = device_id
