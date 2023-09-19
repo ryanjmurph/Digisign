@@ -160,9 +160,16 @@ class Post(Query):
             connection.commit()
 
         # return the updated post
-        return Post.find(self.id)
+        return self
+
+    def remove_groups(self):
+        with connection.cursor() as cursor:
+            sql = f"DELETE FROM {self.relationship['groups']['table']} WHERE {self.relationship['groups']['foreign_key']} = %s"
+            cursor.execute(sql, (self.id))
+            connection.commit()
 
     def save_groups(self, groups):
+        self.remove_groups()
         for group in groups:
             with connection.cursor() as cursor:
                 sql = f"INSERT INTO {self.relationship['groups']['table']} (post_id, group_id) VALUES (%s, %s)"
