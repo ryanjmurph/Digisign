@@ -230,6 +230,11 @@ class Post(Query):
         # if no group_ids set and no query set, return all active posts where startDate <= today and endDate >= today
         # if group_ids set and no query set, return all active posts where startDate <= today and endDate >= today and post.id in (SELECT post_id FROM post_groups_subscription WHERE group_id IN (group_ids))
 
+        if type(group_ids) == list:
+            # ensure that the group_ids are in a string format and joined by a comma
+            group_ids = ",".join([str(id) for id in group_ids])
+
+
         if query is not None:
             sql = f"SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') AND {query} ORDER BY id DESC"
             with connection.cursor() as cursor:

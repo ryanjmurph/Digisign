@@ -1,0 +1,242 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<div>
+    <h3>Display Page</h3>
+    {{posts}}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-auto">
+                <div id="html-display">
+                    <p>This is a html :\)</p>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div id="image-display">
+                    <img src="https://via.placeholder.com/150" alt="Image Display">
+                </div>
+            </div>
+            <div class="col-auto">
+                <div id="weblink-display">
+                    <iframe src="https://iframetester.com" title="Weblink Display" frameborder="0"></iframe>
+                </div>
+            </div>
+            <div class="col">
+                <div id="qrcode-display"></div>
+            </div>
+        </div>
+
+        
+            <div class="progress" role="progressbar" aria-label="Progress Bar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="height: 1px;">
+                <div id="progress-bar" class=" bg-success progress-bar progress-bar-striped progress-bar-animated"></div>
+              </div>
+        
+
+
+    </div>
+
+</div>
+
+<script>
+    /**
+     * This script takes the posts fetched from the database and displays them on the page
+     **/
+
+    function fetchNewPosts() {
+        // reload the page
+        window.location.reload();
+    };
+    function parsePosts() {
+        var allPosts = {{ posts| tojson
+    }};
+    loopThroughPosts(allPosts);
+        
+     };
+
+    function display_ProgressBar(period_mins) {
+        // display a progress bar that shows the time remaining until the next post is displayed
+        // the progress bar should be updated every second
+
+        // get the progress bar element
+        var progressBar = document.getElementById("progress-bar");
+
+        // set the progress bar to 100%
+        progressBar.style.width = "100%";
+        progressBar.setAttribute("aria-valuenow", 100);
+
+        var scaled_reduction = 100 / (period_mins * 60);
+
+        console.log(`scaled_reduction: ${scaled_reduction}`);
+
+        // each second, reduce the progress bar by the scaled reduction
+        var progress = 100;
+
+        var progressInterval = setInterval(function () {
+            // reduce the progress bar by the scaled reduction
+            progress -= scaled_reduction;
+
+            // set the progress bar to the new progress
+            progressBar.style.width = `${progress}%`;
+            progressBar.setAttribute("aria-valuenow", progress);
+
+            console.log(`progress: ${progress}`);
+
+            // check if the progress is 0
+            if (progress <= 0) {
+                // stop the progress bar
+                clearInterval(progressInterval);
+
+                // reset the progress bar
+                progressBar.style.width = "100%";
+                progressBar.setAttribute("aria-valuenow", 100);
+
+            }
+        }, 1000);
+
+
+
+    }
+
+    function loopThroughPosts(posts) {
+        // display the posts sequentially on the page
+        // there should be a waiting period between each post
+        // every 15 minutes, the page should reload and fetch new posts
+
+        // set reload timer
+        var reload_wait_mins = 1;
+
+        setTimeout(function () {
+            console.log("refreshing posts");
+            fetchNewPosts();
+        }, reload_wait_mins * 60 * 1000);
+
+        // iterate through the posts and once at the end, start again
+        var postIndex = 0;
+        var postCount = posts.length;
+
+        var defaultDisplayInterval_min = 10 / 60;
+        var nextDisplayInterval_min = defaultDisplayInterval_min;
+
+        displayPost(posts[postIndex], nextDisplayInterval_min);
+
+
+
+        // loop through the posts
+        setInterval(function () {
+            // display the post
+            displayPost(posts[postIndex], nextDisplayInterval_min);
+
+            // set the next display interval
+            nextDisplayInterval_min = posts[postIndex].display_interval || defaultDisplayInterval_min;
+
+            // increment the post index
+            postIndex++;
+
+            // check if the post index is at the end
+            if (postIndex >= postCount) {
+                // reset the post index
+                postIndex = 0;
+            }
+        }, nextDisplayInterval_min * 60 * 1000 );
+
+    };
+
+    function displayPost(post, interval = 10 / 60) {
+
+        console.log(`Displaying post ${post.id} of type ${post.type} with interval ${interval}`);
+
+        // display the post
+        // check the post type
+        if (post.type.toLowerCase() == "html") {
+            // display html
+            displayHTML(post.html_content);
+        } else if (post.type == "image") {
+            // display image
+            displayImage(post.image_link);
+        } else if (post.type == "weblink") {
+            // display weblink
+            displayPost(post.web_link);
+        } else {
+            // display error
+            console.log(`Error: Post type ${post.type} not found`);
+        }
+
+        //TODO: Append QR code to the post
+
+        display_ProgressBar(interval);
+    };
+
+    function toggleDisplayElementVisibility(elementSelector, display = false) {
+
+        // if display is true, display the element
+        if (display) {
+            document.getElementById(elementSelector).style.display = "block";
+        } else {
+            // if display is false, hide the element
+            document.getElementById(elementSelector).style.display = "none";
+        }
+    }
+
+    function displayHTML(htmlContent) {
+
+        // hide the other displays by display:none
+        toggleDisplayElementVisibility("image-display", false);
+        toggleDisplayElementVisibility("weblink-display", false);
+        toggleDisplayElementVisibility("qrcode-display", false);
+
+        // display the html content
+        // check if the html content is valid
+        if (htmlContent) {
+            // display the html content
+            document.getElementById("html-display").innerHTML = htmlContent;
+            toggleDisplayElementVisibility("html-display", true);
+        } else {
+            // display error
+            console.log("Error: HTML content is empty");
+        }
+    };
+    function displayImage(imagePath) {
+
+        // hide the other displays by display:none
+        toggleDisplayElementVisibility("html-display", false);
+        toggleDisplayElementVisibility("weblink-display", false);
+        toggleDisplayElementVisibility("qrcode-display", false);
+
+        // display the image
+        // check if the image path is valid
+        if (imagePath) {
+
+            // display the image
+            document.getElementById("image-display").innerHTML = `<img src="${imagePath}" alt="Image Display">`;
+            toggleDisplayElementVisibility("image-display", true);
+        } else {
+            // display error
+            console.log("Error: Image path is empty");
+        }
+    };
+    function displayWeblink(webLinkPath) {
+
+        // hide the other displays by display:none
+        toggleDisplayElementVisibility("html-display", false);
+        toggleDisplayElementVisibility("image-display", false);
+        toggleDisplayElementVisibility("qrcode-display", false);
+
+        // display the webpage referenced in the webLinkPath
+        document.getElementById("weblink-display").innerHTML = `<iframe src="${webLinkPath}" title="Weblink Display" frameborder="0"></iframe>`;
+        toggleDisplayElementVisibility("weblink-display", true);
+    };
+    function appendQRCode(imagePathInternal) {
+        // fetch the QR code image from the server and append it to the page
+
+        document.getElementById("qrcode-display").innerHTML = `<img src="${imagePathInternal}" alt="QR Code Display">`;
+        toggleDisplayElementVisibility("qrcode-display", true);
+    };
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        // fetchNewPosts();
+        parsePosts();
+    });
+
+</script>
+
+{% endblock %}

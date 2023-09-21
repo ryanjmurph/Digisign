@@ -1,10 +1,12 @@
-import datetime
-from flask import Blueprint, redirect, render_template,request, url_for
-from models.GroupModerator import GroupModerator
-from models.Post import Post
-from flask_login import current_user, login_required
+from flask import Blueprint, redirect, render_template,url_for
+from flask_login import current_user
 
+from models.Post import Post
 from models.User import User
+from models.GroupDevices import GroupDevices
+from models.GroupModerator import GroupModerator
+
+from policies.DisplayPolicy import Policy as DisplayPolicy
 
 controller = Blueprint("home_controller", __name__, template_folder="templates")
 
@@ -13,9 +15,25 @@ controller = Blueprint("home_controller", __name__, template_folder="templates")
 def welcome_page():
     return redirect(url_for("home_controller.dashboard"))
 
+@controller.route("/display", methods=["GET"])
+def display():
+    if not DisplayPolicy(current_user).can_view_displays():
+        error_message="Only devices  are allowed to access this page"
+        return render_template("home/error.html", error_message=error_message)
+    
+    # get posts the device can access
+    group_ids = GroupDevices(device_id=current_user.id).get_groups_for_device(current_user.id)
+    posts = Post().get_active_posts(group_ids=group_ids)
+
+    return render_template("home/display.html", posts=posts)
+
 
 @controller.route("dashboard", methods=["GET"])
 def dashboard():
+
+    if current_user.get_type() == "DEVICE":
+        return redirect(url_for("home_controller.display"))
+
     permissions = {
         "can_view_moderation_actions": False,
         "can_view_devices_online": False,
