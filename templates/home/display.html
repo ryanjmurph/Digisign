@@ -1,9 +1,9 @@
 {% extends "layouts/base.html" %}
 {% block content %}
+<body style="background-color: {{ colors[0] }};"></body>
 <div>
     <h3>Display Page</h3>
-    {{posts}}
-
+    
     <div class="container">
         <div class="row">
             <div class="col-auto">
@@ -48,7 +48,9 @@
     };
     function parsePosts() {
         var allPosts = {{ posts| tojson}};
-        loopThroughPosts(allPosts);
+        var colors = {{colors |tojson}}
+        
+        loopThroughPosts(allPosts,colors);
         
      };
 
@@ -96,7 +98,7 @@
 
     }
 
-    function loopThroughPosts(posts) {
+    function loopThroughPosts(posts,colors) {
         // display the posts sequentially on the page
         // there should be a waiting period between each post
         // every 15 minutes, the page should reload and fetch new posts
@@ -123,10 +125,12 @@
         // loop through the posts
         setInterval(function () {
             // display the post
-            displayPost(posts[postIndex], nextDisplayInterval_min);
+            
+            displayPost(posts[postIndex], nextDisplayInterval_min,colors[postIndex]);
 
             // set the next display interval
             nextDisplayInterval_min = posts[postIndex].display_interval || defaultDisplayInterval_min;
+            
 
             // increment the post index
             postIndex++;
@@ -140,10 +144,11 @@
 
     };
 
-    function displayPost(post, interval = 10 / 60) {
+    function displayPost(post, interval = 10 / 60,color) {
+
 
         console.log(`Displaying post ${post.id} of type ${post.type} with interval ${interval}`);
-
+        document.body.style.backgroundColor = color;
         // display the post
         // check the post type
         if (post.type.toLowerCase() == "html") {
