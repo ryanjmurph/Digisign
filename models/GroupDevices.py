@@ -17,6 +17,8 @@ class GroupDevices(Query):
 
     table_name = "group_device_subscriptions"
 
+    fillable = ["device_id","group_id"]
+
     def __init__(self, id=None, device_id=None, group_id=None):
         self.id = id
         self.device_id = device_id

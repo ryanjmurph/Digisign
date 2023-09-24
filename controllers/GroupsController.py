@@ -4,6 +4,7 @@ from flask_login import login_required,current_user
 from models.Group import Group
 from models.GroupModerator import GroupModerator
 from models.User import User
+from models.GroupDevices import GroupDevices as GroupDevice
 from policies.UserPolicy import Policy as UserAccessPolicy
 
 
@@ -44,11 +45,14 @@ def create_post():
 @controller.route("/edit/<id>", methods=["GET"])
 @login_required
 def edit(id):
-    group = Group().find(id)
+    group:Group = Group().find(id)
     users = User().raw("SELECT id,name FROM users WHERE state = 'ACTIVE' AND (type = 'USER' OR type='ADMINISTRATOR')")
     devices = User().raw("SELECT id,name FROM users WHERE type = 'DEVICE'")
 
-    moderators = group.getModerators(eager_load=True);
+    group.devices = group.get_devices()
+    group.devices = [device["id"] for device in group.devices]
+
+    moderators = group.getModerators();
     selected_moderators = ''
     for moderator in moderators:
         selected_moderators += str(moderator["id"]) + ','
@@ -64,7 +68,9 @@ def edit_devices(id):
     group = Group().find(id)
     devices = request.form.getlist("device_id")
 
-    group.associateDevicesWithGroup(devices)
+    print("devices",devices)
+
+    associate_devices_with_groups(group,devices)
 
     flash("Devices associated successfully", "success")
     return redirect(url_for("groups.edit",id=id))
@@ -148,7 +154,28 @@ def index():
 
     return render_template("groups/list.html", groups=groups)
 
-def associateModeratorsWithGroup(group,moderator_ids):
+
+def associate_devices_with_groups(group:Group,devices):
+    # cast str to int and remove any empty values
+    device_ids = [int(i) for i in devices if i != '' and int(i) != 0]
+
+    print("device ids ",device_ids)
+
+    current_devices = group.get_devices()
+
+    device_ids_removed = []
+    for device in current_devices:
+        if device["id"] not in device_ids:
+            device_ids_removed.append(device["id"])
+            GroupDevice().raw(f"DELETE FROM {GroupDevice.table_name} WHERE group_id = {group.id} AND device_id = {device['id']}")
+
+    device_ids_added = []
+    for device_id in device_ids:
+        if device_id not in [device["id"] for device in current_devices]:
+            device_ids_added.append(device_id)
+            GroupDevice(group_id=group.id,device_id=device_id).save()
+
+def associateModeratorsWithGroup(group:Group,moderator_ids):
 
     # filter moderator_ids to only include integers and remove '' values or 0 values
     moderator_ids = [int(i) for i in moderator_ids if i != '' and int(i) != 0]

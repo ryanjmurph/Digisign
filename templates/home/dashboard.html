@@ -18,7 +18,7 @@
                 <p>Moderation Actions Required</p>
             </div>
             <div class="card-body">
-                {% if counts.pending_posts_count > 0 and counts.pending_users_count > 0 %}
+                {% if counts.pending_posts_count > 0 or counts.pending_users_count > 0 %}
                     {% if counts.pending_posts_count > 0 %}
                     <p>Posts Pending Approvals : {{ counts.pending_posts_count }}</p>
                     {% endif %}

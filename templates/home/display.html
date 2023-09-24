@@ -47,9 +47,8 @@
         window.location.reload();
     };
     function parsePosts() {
-        var allPosts = {{ posts| tojson
-    }};
-    loopThroughPosts(allPosts);
+        var allPosts = {{ posts| tojson}};
+        loopThroughPosts(allPosts);
         
      };
 

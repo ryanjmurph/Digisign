@@ -155,7 +155,7 @@ class User(Query):
     def get_pending_users(self):
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM users WHERE state = 'PENDING'"
+            sql = "SELECT * FROM users WHERE state = 'APPROVAL_REQUIRED'"
             cursor.execute(sql)
             result = cursor.fetchall()
             return result

@@ -283,7 +283,7 @@ def list_posts():
     if policy.canViewAdminPostList():
         userposts = Post().all()
     elif policy.canViewPostList():
-        userposts = Post.postsCreatedBy(current_user.get_id())
+        userposts = Post().postsCreatedBy(current_user.get_id())
     else:
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)
@@ -293,17 +293,17 @@ def list_posts():
     if "filter" in request.args:
         # check for filter by name
         if request.args["filter"] == "title":
-            posts = Post.filter_by_title(request.args["search"])
+            posts = Post().filter_by_title(request.args["search"])
             active_filters = "title=" + request.args["search"]
 
         # check for filter by state
         if request.args["filter"] == "state":
-            posts = Post.filter_by_state(request.args["search"])
+            posts = Post().filter_by_state(request.args["search"])
             active_filters = "state=" + request.args["search"]
 
         # check for filter by id
         if request.args["filter"] == "id":
-            posts = Post.filter_by_id(request.args["search"])
+            posts = Post().filter_by_id(request.args["search"])
             active_filters = "id=" + request.args["search"]
     else:
         posts = userposts
