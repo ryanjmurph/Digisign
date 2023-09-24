@@ -39,7 +39,6 @@ def display():
         colordict = group.getColors(number)
         colors.append(colordict[0]["color"])
 
-    colors = ["#00008B","#7FFFD4"]
 
     return render_template("home/display.html", posts=posts,colors = colors)
 
