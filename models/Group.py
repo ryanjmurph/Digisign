@@ -14,11 +14,12 @@ class Group(Query):
     moderation_required = False
     created_at = None
     updated_at = None
+    color = None
 
     table_name = "post_groups"
     connection = MYSQL().get_connection()
 
-    fillable = ["name", "description", "moderation_required"]
+    fillable = ["name", "description", "moderation_required","color"]
 
     casts = { "moderation_required" : "bool" }
     relationship = {
@@ -51,10 +52,11 @@ class Group(Query):
         },
     }
 
-    def __init__(self,name=None,description=None,moderation_required=None) -> None:
+    def __init__(self,name=None,description=None,moderation_required=None,color=None) -> None:
         self.name = name
         self.description = description 
         self.moderation_required = moderation_required
+        self.color = color
 
 
     @classmethod

@@ -36,8 +36,9 @@ def create_post():
         
     name = request.form["name"]
     description = request.form["description"]
+    color = request.form["color"]
     
-    group = Group(name=name,description=description,moderation_required=moderation_required)
+    group = Group(name=name,description=description,moderation_required=moderation_required,color=color)
     group.save()
 
     return redirect(url_for("groups.index"))
@@ -102,11 +103,13 @@ def edit_post(id):
 
     name = request.form["name"]
     description = request.form["description"]
-    
+    color = request.form["color"]
+
     changes = {
         "name": name,
         "description": description,
         "moderation_required": moderation_required,
+        "color": color
     }
 
     group.update(changes)
