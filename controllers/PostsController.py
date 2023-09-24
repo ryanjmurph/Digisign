@@ -3,13 +3,13 @@
 # This is the controller for creating, reading, updating and deleting posts
 
 import os
-from flask import Blueprint, redirect, render_template, abort, request, url_for
+from flask import Blueprint, redirect, flash,render_template, abort, request, url_for
 from flask_login import current_user, login_required
 from models.Post import Post
 from models.Group import Group
-from models.User import User
 
 from policies.PostPolicy import Policy as PostPolicy
+from policies.UserPolicy import Policy as UserPolicy
 
 controller = Blueprint("posts", __name__, template_folder="templates")
 
@@ -23,8 +23,13 @@ def index():
 
 @controller.route("/<int:id>/edit", methods=["GET"])
 @login_required
-def show_edit_page(id):
+def edit(id):
     post = Post().find(id)
+
+    post.groups = post.get_groups()
+
+    # extract the group_ids from post_groups
+    post.groups = [group["group_id"] for group in post.groups]
 
     if not PostPolicy(current_user).canManagePost(post):
         message = "You are not authorized to view this post"
@@ -37,6 +42,42 @@ def show_edit_page(id):
     ]
 
     return render_template("posts/edit.html", post=post, groups=Group.all(),permissions=permissions)
+
+@controller.route("/<int:id>/postState", methods=["POST"])
+def update_post_state(id):
+    post = Post().find(id)
+    if post is None:
+        return abort(404, f"Post with id {id} not found")
+    
+    if not PostPolicy(current_user).canManagePost(post):
+        return render_template("errors/401.html", error_message="You are not authorized to manage this post")
+    
+    # determine allowed states depending on the current state ad the current user
+
+    if PostPolicy(current_user).canApprovePost(post):
+        allowed_states = ["APPROVED","WITHDRAWN","PUBLISHED"]
+        if request.form["state"] in allowed_states:
+            post.update({"state":request.form["state"]})
+            flash("Post state updated successfully","success")
+        else:
+            flash("You are not authorized to change the state of this post","error")
+    elif PostPolicy(current_user).canEditPost(post):
+        allowed_states = ["DRAFT","WITHDRAWN","PUBLISHED"]
+        if request.form["state"] in allowed_states:
+            if request.form["state"] == "PUBLISHED" :
+                if PostPolicy(current_user).postRequiresAnyApproval(post):
+                    flash("Post sent for approval","success")
+                    post.updates({"state":"PENDING_APPROVAL"})
+                else:
+                    flash("Post published successfully","success")
+                    post.updates({"state":request.form["state"]})
+            flash("Post state updated successfully","success")
+            post.updates({"state":request.form["state"]})
+        else:
+            flash("You are not authorized to change the state of this post","error")
+
+    return redirect(url_for("posts.edit", id=post.id))
+
 
 
 @controller.route("/<int:id>/edit", methods=["POST"])
@@ -54,7 +95,6 @@ def update_post(id):
         "type": "",
         "start_date": request.form["start_date"],
         "end_date": request.form["end_date"],
-        "state": request.form["state"],
     }
 
     # set only the fillable attributes in this request
@@ -111,7 +151,7 @@ def update_post(id):
 
     # save the post groups
     if "post_groups" in request.form:
-        post.save_groups(request.form["post_groups"])
+        post.save_groups(request.form.getlist("post_groups"))
 
     # redirect to the post create page with a success message
     return redirect(url_for("posts.list_posts"))
@@ -130,6 +170,13 @@ def create():
     if request.form["post_type"] == "image":
         # store the image in the static/images folder
         image = request.files["image"]
+
+        # if no new image was provided, return an error
+        if image.filename == "":
+            flash("No image was provided","error")
+            return redirect(url_for("posts.new"))
+
+
         image.save(f"static/images/{image.filename}")
 
         # create the post
@@ -187,10 +234,10 @@ def create():
     if "post_groups" in request.form:
         post.save_groups(request.form["post_groups"])
 
+    flash("Post created successfully. Publish the post once you are ready for it to be viewable","success") 
+
     # redirect to the post create page with a success message
-    return render_template(
-        "posts/create.html", success="Post created successfully", groups=Group.all()
-    )
+    return redirect(url_for("posts.edit", id=post.id))
 
 
 @controller.route("/new", methods=["GET"])
@@ -236,7 +283,7 @@ def list_posts():
     if policy.canViewAdminPostList():
         userposts = Post().all()
     elif policy.canViewPostList():
-        userposts = Post.postsCreatedBy(current_user.get_id())
+        userposts = Post().postsCreatedBy(current_user.get_id())
     else:
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)
@@ -246,17 +293,17 @@ def list_posts():
     if "filter" in request.args:
         # check for filter by name
         if request.args["filter"] == "title":
-            posts = Post.filter_by_title(request.args["search"])
+            posts = Post().filter_by_title(request.args["search"])
             active_filters = "title=" + request.args["search"]
 
         # check for filter by state
         if request.args["filter"] == "state":
-            posts = Post.filter_by_state(request.args["search"])
+            posts = Post().filter_by_state(request.args["search"])
             active_filters = "state=" + request.args["search"]
 
         # check for filter by id
         if request.args["filter"] == "id":
-            posts = Post.filter_by_id(request.args["search"])
+            posts = Post().filter_by_id(request.args["search"])
             active_filters = "id=" + request.args["search"]
     else:
         posts = userposts

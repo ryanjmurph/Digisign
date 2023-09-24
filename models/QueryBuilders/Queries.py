@@ -66,30 +66,29 @@ class Query(JoinRelationship):
 
     def save(self):
         connection = self.getDatabaseConnection()
-        casts = self.getCasts()
 
+        data = self.__dict__
+        data = self.prepareValues(data)
+        data = self.makeValuesSafe(data)
+
+        # prepare the sql statement
         sql = f"INSERT INTO {self.getTableName()} ("
-        for key in self.__dict__:
-            if key == "id":
-                continue
+        for key in data:
             sql += f"{key}, "
         sql = sql[:-2]
         sql += ") VALUES ("
-        for key in self.__dict__:
-            if key == "id":
-                continue
-            if self.isAttributeCastable(casts, key):
-                sql += f"{self.castAttribute(casts,key,self.__dict__[key])}, "
-            else:
-                sql += f"'{self.__dict__[key]}', "
+        for key in data:
+            sql += f"{data[key]}, "
         sql = sql[:-2]
         sql += ")"
+        
+        print(f"\n\nSQL: {sql}\n\n")
 
         with connection.cursor() as cursor:
             cursor.execute(sql)
             connection.commit()
 
-        return self.find(connection.insert_id())
+        return self.find(cursor.lastrowid)
 
     def getDatabaseConnection(self):
         # check if connection is defined in the child class

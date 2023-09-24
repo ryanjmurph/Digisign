@@ -18,6 +18,13 @@ class Policy(UserPolicy, Query):
         self.user = user
         UserPolicy.__init__(self, user)
 
+    def postRequiresAnyApproval(self, post: Post):
+        groups = post.get_groups()
+        for group in groups:
+            if group["requires_approval"]:
+                return True
+        return False
+
     def canViewAllPosts(self):
         return self.isAnAdministator() or self.isAModerator()
 

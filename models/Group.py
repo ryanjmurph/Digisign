@@ -18,12 +18,20 @@ class Group(Query):
     table_name = "post_groups"
     connection = MYSQL().get_connection()
 
+    fillable = ["name", "description", "moderation_required"]
+
     casts = { "moderation_required" : "bool" }
     relationship = {
         "devices": {
             "table": "group_device_subscriptions",
             "foreign_key": "group_id",
             "local_key": "id",
+            "eager_load":{
+                "table": "users",
+                "foreign_key": "device_id",
+                "local_key": "id",
+                "columns": "id,name"
+            },
         },
         "posts": {
             "table": "post_groups_subscription",
@@ -130,8 +138,16 @@ class Group(Query):
                 result = cursor.fetchall()
                 return result
             
-    def getModerators(self,eager_load=False):
+    def getModerators(self):
         relationship = self.relationship["moderators"]
+        sql = self.withRelation(relationship["eager_load"],fromTable=relationship["table"],fromTableForeignKey=relationship["foreign_key"])
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+        
+    def get_devices(self):
+        relationship = self.relationship["devices"]
         sql = self.withRelation(relationship["eager_load"],fromTable=relationship["table"],fromTableForeignKey=relationship["foreign_key"])
         with self.connection.cursor() as cursor:
             cursor.execute(sql)

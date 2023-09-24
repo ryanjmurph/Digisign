@@ -52,7 +52,7 @@
                 <div class="col-4">
                     <label class="form-check-label" for="device_label_{{device.id}}">
                         <input type="checkbox" class="form-check-input" id="device_label_{{device.id}}" name="device_id"
-                            value="{{device.id}}" {% if device.selected %} checked {% endif %} />
+                            value="{{device.id}}" {% if device.id in group.devices %} checked {% endif %} />
                         {{device.name}}
                     </label>
                 </div>
