@@ -39,9 +39,9 @@ def display():
         colordict = group.getColors(number)
         colors.append(colordict[0]["color"])
 
-    print(display_times)
+    colors = ["#00008B","#7FFFD4"]
 
-    return render_template("home/display.html", posts=posts,colors = colors,display_times = display_times)
+    return render_template("home/display.html", posts=posts,colors = colors)
 
 
 @controller.route("dashboard", methods=["GET"])
