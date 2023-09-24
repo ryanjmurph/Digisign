@@ -5,6 +5,7 @@ from models.Post import Post
 from models.User import User
 from models.GroupDevices import GroupDevices
 from models.GroupModerator import GroupModerator
+from models.Group import Group
 
 from policies.DisplayPolicy import Policy as DisplayPolicy
 
@@ -22,10 +23,25 @@ def display():
         return render_template("home/error.html", error_message=error_message)
     
     # get posts the device can access
+    group = Group()
     group_ids = GroupDevices(device_id=current_user.id).get_groups_for_device(current_user.id)
     posts = Post().get_active_posts(group_ids=group_ids)
+    print(posts)
 
-    return render_template("home/display.html", posts=posts)
+    
+    ids = [item['id'] for item in posts]
+    display_times = [item['display_time'] for item in posts]
+
+    colors = []
+    for id in ids: 
+        array = group.getGroupID(id)
+        number = array[0]["group_id"]
+        colordict = group.getColors(number)
+        colors.append(colordict[0]["color"])
+
+    print(colors)
+
+    return render_template("home/display.html", posts=posts,display_times = display_times,colors = colors)
 
 
 @controller.route("dashboard", methods=["GET"])

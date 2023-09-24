@@ -149,10 +149,10 @@
         if (post.type.toLowerCase() == "html") {
             // display html
             displayHTML(post.html_content);
-        } else if (post.type == "image") {
+        } else if (post.type.toLowerCase() == "image") {
             // display image
             displayImage(post.image_link);
-        } else if (post.type == "weblink") {
+        } else if (post.type.toLowerCase() == "weblink") {
             // display weblink
             displayPost(post.web_link);
         } else {

@@ -291,6 +291,9 @@ class Post(Query):
         self.device_id = device_id
         return self
 
+    def getDisplayTime(self):
+        return self.display_time
+
     @staticmethod
     def createQR(webLink, code):
         if code:

@@ -155,3 +155,18 @@ class Group(Query):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
+        
+    def getGroupID(self,id):
+        sql = "SELECT  group_id from post_groups_subscription where post_id = %s"
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql,(id))
+            result = cursor.fetchall()
+            return result
+    
+    def getColors(self,id):
+        sql = "SELECT color from post_groups where id= %s"
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql,(id))
+            result = cursor.fetchall()
+            return result
+
