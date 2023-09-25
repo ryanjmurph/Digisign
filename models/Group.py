@@ -14,11 +14,12 @@ class Group(Query):
     moderation_required = False
     created_at = None
     updated_at = None
+    color = None
 
     table_name = "post_groups"
     connection = MYSQL().get_connection()
 
-    fillable = ["name", "description", "moderation_required"]
+    fillable = ["name", "description", "moderation_required","color"]
 
     casts = { "moderation_required" : "bool" }
     relationship = {
@@ -51,10 +52,11 @@ class Group(Query):
         },
     }
 
-    def __init__(self,name=None,description=None,moderation_required=None) -> None:
+    def __init__(self,name=None,description=None,moderation_required=None,color=None) -> None:
         self.name = name
         self.description = description 
         self.moderation_required = moderation_required
+        self.color = color
 
 
     @classmethod
@@ -153,7 +155,6 @@ class Group(Query):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
-        
     def add_moderator(self, user_id):
         relationship = self.relationship["moderators"]
         with self.connection.cursor() as cursor:
@@ -167,3 +168,16 @@ class Group(Query):
             sql = f"INSERT INTO {relationship['table']} ({relationship['foreign_key']},post_id) VALUES ({self.id},{post_id})"
             cursor.execute(sql)
             self.connection.commit()
+    def getGroupID(self,id):
+        sql = "SELECT  group_id from post_groups_subscription where post_id = %s"
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql,(id))
+            result = cursor.fetchall()
+            return result
+    
+    def getColors(self,id):
+        sql = "SELECT color from post_groups where id= %s"
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql,(id))
+            result = cursor.fetchall()
+            return result

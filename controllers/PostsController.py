@@ -95,10 +95,11 @@ def update_post(id):
         "type": "",
         "start_date": request.form["start_date"],
         "end_date": request.form["end_date"],
+        "display_time": request.form["display_time"],
     }
 
     # set only the fillable attributes in this request
-    post.fillable = ["title", "type", "start_date", "end_date", "state"]
+    post.fillable = ["title", "type", "start_date", "end_date", "state","display_time"]
 
     remove_previous_image = False
     previous_image_link = post.image_link
@@ -187,7 +188,8 @@ def create():
             endDate=request.form["end_date"],
             imageLink=f"static/images/{image.filename}",
             state="DRAFT",
-            created_by=current_user.get_id()
+            created_by=current_user.get_id(),
+            display_time = request.form["display_time"]
         )
 
         # save the post
@@ -202,7 +204,8 @@ def create():
             endDate=request.form["end_date"],
             htmlContent=request.form["htmlContent"],
             state="DRAFT",
-            created_by=current_user.get_id()
+            created_by=current_user.get_id(),
+            display_time = request.form["display_time"]
         )
         # save the post
         post.insert()
@@ -216,7 +219,8 @@ def create():
             endDate=request.form["end_date"],
             webLink=request.form["web_link"],  # Update this line
             state="DRAFT",
-            created_by=current_user.get_id()
+            created_by=current_user.get_id(),
+            display_time = request.form["display_time"]
         )
         # Check if the "Add QR code" checkbox is checked
         add_qr_code = request.form.get("add_qr_code")
