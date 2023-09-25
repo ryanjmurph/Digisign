@@ -53,6 +53,12 @@ class Policy(UserPolicy, Query):
         """
         return self.isAnAdministator() or self.isAModerator()
 
+    def can_view_moderator_posts(self):
+        """
+        Checks if user is a moderator
+        """
+        return self.isAModerator()
+
     def canCreatePost(self):
         """
         Checks if the user can create a post.
@@ -93,8 +99,10 @@ class Policy(UserPolicy, Query):
         if self.user.isModerator():
             groups = GroupModerator(user=self.user).getGroupsCanModerate()
             post_groups = post.get_groups()
+            groups = [group["group_id"] for group in groups]
+            post_groups = [group["group_id"] for group in post_groups]
             for group in post_groups:
-                if group["id"] in groups:
+                if group in groups:
                     return True
         if UserPolicy(self.user).isAnAdministator():
             return True
@@ -115,8 +123,14 @@ class Policy(UserPolicy, Query):
             return True
         if self.user.isModerator():
             groups = GroupModerator(user=self.user).getGroupsCanModerate()
-            if post.group_id in groups:
-                return True
+            post_groups = post.get_groups()
+            groups = [group["group_id"] for group in groups]
+            post_groups = [group["group_id"] for group in post_groups]
+            print("Groups can moderate: ", groups)
+            print("Post groups: ", post_groups)
+            for group in post_groups:
+                if group in groups:
+                    return True
         if UserPolicy(self.user).isAnAdministator():
             return True
         return False

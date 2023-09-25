@@ -5,6 +5,7 @@
 import os
 from flask import Blueprint, redirect, flash,render_template, abort, request, url_for
 from flask_login import current_user, login_required
+from models.GroupModerator import GroupModerator
 from models.Post import Post
 from models.Group import Group
 
@@ -17,7 +18,7 @@ controller = Blueprint("posts", __name__, template_folder="templates")
 @controller.route("/", methods=["GET"])
 @login_required
 def index():
-    posts = Post().all()
+    posts = Post().get_my_posts()
     return render_template("posts/index.html", posts=posts)
 
 
@@ -47,13 +48,36 @@ def edit(id):
         message = "You are not authorized to view this post"
         return render_template("errors/401.html", error_message=message)
     
-    permissions = [
-        canApprovePost := PostPolicy(current_user).canApprovePost(post),
-        canWithdrawPost := PostPolicy(current_user).canEditPost(post),
-        canEditPost := PostPolicy(current_user).canEditPost(post),
-    ]
+    permissions = {
+        "canApprovePost" : PostPolicy(current_user).canApprovePost(post),
+        "canWithdrawPost" : PostPolicy(current_user).canEditPost(post),
+        "canEditPost" : PostPolicy(current_user).canEditPost(post),
+    }
+
+    
 
     return render_template("posts/edit.html", post=post, groups=Group.all(),permissions=permissions)
+
+@controller.route("/<int:id>/approvePost", methods=["GET"])
+@login_required
+def approve_post(id):
+    if not PostPolicy(current_user).canApprovePost(Post().find(id)):
+        return render_template("errors/401.html", error_message="You are not authorized to approve this post")
+    
+    groups_can_moderate = GroupModerator(user=current_user).getGroupsCanModerate()
+    group_ids = [group["group_id"] for group in groups_can_moderate]
+
+    post = Post().find(id)
+    
+    # update all post_group_subscription records for this post
+    # read the action from the query string
+    action = request.args["action"]
+    if action == "APPROVE":
+        Post().raw(f"UPDATE post_groups_subscription SET state = 'APPROVED' WHERE post_id = {post.id} AND group_id IN ({','.join(map(str,group_ids))})")
+    else:
+        Post().raw(f"UPDATE post_groups_subscription SET state = 'REJECTED' WHERE post_id = {post.id} AND group_id IN ({','.join(map(str,group_ids))})")
+
+    return redirect(url_for("posts.list_posts"))
 
 @controller.route("/<int:id>/postState", methods=["POST"])
 def update_post_state(id):
@@ -105,7 +129,7 @@ def update_post_state(id):
 
 
 
-@controller.route("/<int:id>/edit", methods=["POST"])
+@controller.route("/<int:id>/edit", methods=["POST"])    
 def update_post(id):
     """
     Updates an existing post with the given `id` using the data submitted in the request form.
@@ -117,7 +141,6 @@ def update_post(id):
     Saves the post groups if they are included in the request form.
     Redirects to the list of posts with a success message.
     """
-def update_post(id):
     post = Post().find(id)
     if post is None:
         return abort(404, f"Post with id {id} not found")
@@ -175,7 +198,8 @@ def update_post(id):
 
     elif request.form["post_type"] == "link":
         attributes["type"] = "WEB_LINK"
-        attributes["web_link"] = request.form["webLink"]
+        print("requestform",request.form)
+        attributes["web_link"] = request.form["web_link"]
         post.fillable.append("web_link")
 
     # update the post
@@ -341,36 +365,31 @@ def list_posts():
     user = current_user
     policy = PostPolicy(user)
 
-    if policy.canViewAdminPostList():
-        userposts = Post().all()
-    elif policy.canViewPostList():
-        userposts = Post().postsCreatedBy(current_user.get_id())
-    else:
+    if not policy.canViewAdminPostList() and not policy.canViewPostList():
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)
+    
+    pending_posts = []
+    # if is a moderator, fetch pending posts as well
+    if policy.can_view_moderator_posts():
+        groups_can_moderate = GroupModerator(user=user).getGroupsCanModerate()
+        
+        group_ids = [group["group_id"] for group in groups_can_moderate]
+        pending_posts = Post().get_pending_posts(group_ids)
+    
+    userposts = Post().get_my_posts(user=current_user)
 
     active_filters = ""
 
     if "filter" in request.args:
-        # check for filter by name
-        if request.args["filter"] == "title":
-            posts = Post().filter_by_title(request.args["search"])
-            active_filters = "title=" + request.args["search"]
-
-        # check for filter by state
-        if request.args["filter"] == "state":
-            posts = Post().filter_by_state(request.args["search"])
-            active_filters = "state=" + request.args["search"]
-
-        # check for filter by id
-        if request.args["filter"] == "id":
-            posts = Post().filter_by_id(request.args["search"])
-            active_filters = "id=" + request.args["search"]
+        posts = Post().filter_results(userposts,request.args["filter"],request.args["search"],"=")
+        active_filters = request.args["filter"] + "=" + request.args["search"]
     else:
         posts = userposts
+    
 
     # return the form in templates/posts/create.html
     return render_template(
-        "posts/admin/list.html", posts=posts, activeFilters=active_filters
+        "posts/admin/list.html", posts=posts, activeFilters=active_filters,pending_posts=pending_posts
     )
 

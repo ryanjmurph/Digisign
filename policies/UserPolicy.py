@@ -150,10 +150,10 @@ class Policy(Query):
         Returns:
         - True if the user is a moderator, False otherwise.
         """
-        if self.user.isModerator(self.user.id) == 0:
+        groups = GroupModerator(user=self.user).getGroupsCanModerate()
+        if len(groups) == 0:
             return False
-        else:
-            return True
+        return True
 
             
         

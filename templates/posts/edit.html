@@ -27,9 +27,8 @@
                 {% for group in groups %}
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch"
-                        id="{{ 'group-device-checkbox-' + group.id|string }}" name="post_groups"
-                        {% if group.id in post.groups %}checked{% endif %}
-                        value="{{ group.id }}" />
+                        id="{{ 'group-device-checkbox-' + group.id|string }}" name="post_groups" {% if group.id in
+                        post.groups %}checked{% endif %} value="{{ group.id }}" />
                     <label class="form-check-label" for="{{ 'group-device-checkbox-' + group.id|string }}">
                         {{ group.name }}
                     </label>
@@ -80,7 +79,8 @@
             {% if post.type == "IMAGE"%}
             <div id="uploaded-file" class="mb-5">
                 <label for="uploadedImage" class="form-label">Existing Image</label>
-                <img src="/{{post.image_link}}" alt="Uploaded Image" class="image-fluid" style="max-width: 100%;max-height: 50vh;" />
+                <img src="/{{post.image_link}}" alt="Uploaded Image" class="image-fluid"
+                    style="max-width: 100%;max-height: 50vh;" />
             </div>
             {% endif %}
 
@@ -107,42 +107,57 @@
             </div>
             <div class="mb-5" id="web-link-input" style="display: none">
                 <label for="web-link" class="form-label">Web Link</label>
-                <input type="text" class="form-control" id="web-link" name="web_link" required value="{{ post.web_link }}"/>
+                <input type="text" class="form-control" id="web-link" name="web_link" required
+                    value="{{ post.web_link }}" />
             </div>
-            
+
             <div class="mb-3">
                 <label for="display_time" class="form-label">Display Time (seconds)</label>
-                <input type="number" class="form-control" id="display_time" name="display_time" min="5" max="30" required value="{{ post.display_time }}" />
+                <input type="number" class="form-control" id="display_time" name="display_time" min="5" max="30"
+                    required value="{{ post.display_time }}" />
             </div>
-            
+
             <div class="mb-3 form-check" id="qr-code-checkbox" style="display: none">
                 <input class="form-check-input" type="checkbox" id="add-qr-code" name="add_qr_code">
                 <label class="form-check-label" for="add-qr-code">Add QR code</label>
-              </div>
+            </div>
 
             <button type="submit" class="btn btn-primary">Update</button>
         </form>
 
         <div class="mt-2">
-            
+
             <form action="{{url_for('posts.update_post_state',id=post.id)}}" method="POST">
-            {% if post.state == "WITHDRAWN" or post.state == "DRAFT" %}
-            
+                {% if post.state == "WITHDRAWN" or post.state == "DRAFT" %}
+
                 <input type="hidden" name="state" value="PUBLISHED">
                 <button type="submit" class="btn btn-success">Publish</button>
-            
-            {% endif %}
-            
-            {% if post.state == "PUBLISHED" or post.state == "APPROVED" %}
-            
+
+                {% endif %}
+
+                {% if post.state == "PUBLISHED" or post.state == "APPROVED" %}
+
                 <input type="hidden" name="state" value="WITHDRAWN">
                 <button type="submit" class="btn btn-danger">Withdraw</button>
-            
-            {%endif%}
+
+                {%endif%}
+
+
+
             </form>
+            {% if permissions['canApprovePost'] and post.state == "PUBLISHED" %}
+            <div>
+                <p class="mb-2">Group Moderation Actions</p>
+                
+                <a href="{{url_for('posts.approve_post',id=post.id, action='APPROVE')}}"
+                    class="btn btn-success">Approve</a>
+                <a href="{{url_for('posts.approve_post',id=post.id,action='REJECT')}}" class="btn btn-danger">Reject</a>
+                
+            </div>
+            {%endif%}
         </div>
 
-        
+
     </div>
 
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>

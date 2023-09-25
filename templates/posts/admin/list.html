@@ -33,6 +33,108 @@
     </form>
 </div>
 
+{% if pending_posts|length > 0 %}
+<h2>Pending Posts</h2>
+
+<div class="card mb-5 shadow-sm">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Post ID</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">State</th>
+                    <th scope="col">Submitted By</th>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for post in pending_posts %}
+                <tr>
+                    <th scope="row">{{post.id}}</th>
+                    <td>{{post.title}}</td>
+                    <td>
+
+                        <!-- if type == TEXT display card-text icon -->
+                        {% if post.type == 'HTML' %}
+                        <p class="text-success text-decoration-none">
+                            {{post.type}}
+                            <i class="bi bi-card-text"></i>
+                        </p>
+                        {% endif %}
+
+                        <!-- if type == IMAGE display card-image icon -->
+                        {% if post.type == 'IMAGE' %}
+                        <p class="text-decoration-none text-secondary">
+                            {{post.type}}
+                            <i class="bi bi-card-image"></i>
+                        </p>
+                        {% endif %}
+
+                        <!-- if type == WEB_LINK display URL icon -->
+                        {% if post.type == 'WEB_LINK' %}
+                        <p class="text-decoration-none text-primary">
+                            {{post.type}}
+                            <i class="bi bi-qr-code"></i>
+                        </p>
+
+                        {% endif %}
+
+
+
+                    </td>
+                    <td>
+                        {% if post.state == 'DRAFT' %}
+                        <p class="text-secondary">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if post.state == 'PENDING_APPROVAL' %}
+                        <p class="text-warning">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if post.state == 'APPROVED' or post.state == 'PUBLISHED' %}
+                        <p class="text-success">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                        {% if post.state == 'WITHDRAWN' %}
+                        <p class="text-danger">
+                            <strong>{{post.state}}</strong>
+                        </p>
+                        {% endif %}
+
+                    </td>
+                    <td>{{post.created_by}}</td>
+                    <td>{{post.start_date}}</td>
+                    <td>{{post.end_date}}</td>
+                    <td>
+                        <div class="flex text-decoration-none">
+
+                            
+                            <a href="/posts/{{post.id}}/edit">
+                                <button type="button" class="btn btn-primary">View</button>
+                            </a>
+
+                        </div>
+
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
 <div class="card shadow-sm">
     <div class="card-body">
         <table class="table">
