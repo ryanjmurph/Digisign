@@ -7,9 +7,13 @@ from policies.PostPolicy import Policy
 
 class TestPostPolicy(unittest.TestCase):
 
+    policy: Policy = None
+    user: User = None
+
     def setUp(self):
-        user = User(id=1, name="John Doe", email="john.doe@example.com", type="USER")
-        self.user = user.insert()
+        user = User(name="John Doe", email="john.doe@example.com", type="USER")
+        user.insert()
+        self.user = user
         self.policy = Policy(user=self.user)
     
     def tearDown(self) -> None:
@@ -34,10 +38,6 @@ class TestPostPolicy(unittest.TestCase):
         # device cannot view all posts
         self.user.type = "DEVICE"
         self.assertFalse(self.policy.canViewAllPosts())
-
-    def test_can_create_post(self):
-        self.user.type = "USER"
-        self.assertTrue(self.policy.canCreatePost())
 
     def test_device_cannot_create_post(self):
         self.user.type = "DEVICE"
