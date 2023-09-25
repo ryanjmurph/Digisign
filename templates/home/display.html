@@ -5,7 +5,7 @@
     <h3>Display Page</h3>
     
     <div class="container">
-        <div class="row">
+        <div class="row justify-content-center align-items-center">
             <div class="col-auto">
                 <div id="html-display">
                     <p>This is a html :\)</p>
@@ -13,7 +13,7 @@
             </div>
             <div class="col-auto">
                 <div id="image-display">
-                    <img src="https://via.placeholder.com/150" alt="Image Display">
+                    <img style="max-width: 100vw;"  src="https://via.placeholder.com/150" alt="Image Display">
                 </div>
             </div>
             <div class="col-auto">
@@ -57,10 +57,12 @@
         // Display the post based on its type
         if (post.type.toLowerCase() === "html") {
             displayHTML(post.html_content);
-        } else if (post.type.toLowerCase() === "image") {
+        } else if (post.type.toLowerCase() == "image") {
+            // display image
             displayImage(post.image_link);
-        } else if (post.type.toLowerCase() === "weblink") {
-            displayWeblink(post.web_link);
+        } else if (post.type.toLowerCase() == "weblink") {
+            // display weblink
+            displayPost(post.web_link);
         } else {
             console.log(`Error: Post type ${post.type} not found`);
         }
@@ -96,10 +98,12 @@
         }
     }
 
+
     function displayImage(imagePath) {
         var imageDisplay = document.getElementById("image-display");
         if (imageDisplay) {
-            imageDisplay.innerHTML = `<img src="${imagePath}" alt="Image Display">`;
+            // display the image
+            document.getElementById("image-display").innerHTML = `<img src="${imagePath}" style="max-height:100vh" class="img-fluid" alt="Image Display">`;
             toggleDisplayElementVisibility("image-display", true);
         }
     }
