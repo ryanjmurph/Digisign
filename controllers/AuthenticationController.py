@@ -27,6 +27,13 @@ def logout():
 
 @controller.route("/register", methods=["POST"])
 def register_post():
+    """
+    Registers a new user with the given name, username, password, and password confirmation.
+    If any required field is missing, an error message is flashed and the user is redirected to the registration page.
+    If the password and password confirmation do not match, an error message is flashed and the user is redirected to the registration page.
+    If the username already exists, an error message is flashed and the user is redirected to the registration page.
+    Otherwise, the user is created, logged in, and redirected to the registration success page.
+    """
     required_fields = ["name", "username", "password", "password_confirmation"]
 
     for field in required_fields:
@@ -65,6 +72,12 @@ def register_post():
 
 @controller.route("/login", methods=["POST"])
 def login_post():
+    """
+    Logs in a user with the provided username and password.
+
+    Returns:
+        A redirect to the dashboard if the login is successful, otherwise a redirect to the login page with an error message.
+    """
     required_fields = ["username", "password"]
 
     for field in required_fields:

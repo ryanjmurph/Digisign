@@ -24,6 +24,18 @@ def index():
 @controller.route("/<int:id>/edit", methods=["GET"])
 @login_required
 def edit(id):
+    """
+    Edit a post with the given id.
+
+    Args:
+        id (int): The id of the post to edit.
+
+    Returns:
+        str: The rendered HTML template for editing the post.
+
+    Raises:
+        HTTPException: If the user is not authorized to edit the post.
+    """
     post = Post().find(id)
 
     post.groups = post.get_groups()
@@ -45,6 +57,19 @@ def edit(id):
 
 @controller.route("/<int:id>/postState", methods=["POST"])
 def update_post_state(id):
+    """
+    Update the state of a post with the given id.
+
+    Args:
+        id (int): The id of the post to update.
+
+    Returns:
+        A redirect to the edit page of the updated post.
+
+    Raises:
+        404 error if the post with the given id is not found.
+        401 error if the current user is not authorized to manage or edit the post.
+    """
     post = Post().find(id)
     if post is None:
         return abort(404, f"Post with id {id} not found")
@@ -81,6 +106,17 @@ def update_post_state(id):
 
 
 @controller.route("/<int:id>/edit", methods=["POST"])
+def update_post(id):
+    """
+    Updates an existing post with the given `id` using the data submitted in the request form.
+    If the post is not found, returns a 404 error.
+    If the current user is not authorized to edit the post, returns a 401 error.
+    If the post type is changed from "IMAGE" to something else, removes the previous image.
+    If the post type is changed to "IMAGE" and a new image is provided, saves the new image and updates the image link.
+    If the post type is "HTML" or "WEB_LINK", updates the corresponding fields.
+    Saves the post groups if they are included in the request form.
+    Redirects to the list of posts with a success message.
+    """
 def update_post(id):
     post = Post().find(id)
     if post is None:
@@ -161,14 +197,27 @@ def update_post(id):
 @controller.route("/new", methods=["POST"])
 @login_required
 def create():
+    """
+    Creates a new post based on the form data submitted by the user.
+
+    All required fields are checked to ensure they are present in the form data
+    before the Post is saved to the DB.
+    """
     required_fields = ["title", "start_date", "end_date", "post_type","display_time"]
 
     for field in required_fields:
         if field not in request.form:
             return abort(400, f"Required field {field} is missing")
 
+    
+
+
     # available post types image,html,link
     if request.form["post_type"] == "image":
+        """
+        If the post type is "image", the function also saves the image file to the
+        static/images folder and updates the post object with the image link.
+        """
         # store the image in the static/images folder
         image = request.files["image"]
 
@@ -200,6 +249,10 @@ def create():
         post.save()
 
     elif request.form["post_type"] == "html":
+        """
+        If the post type is "html", the function updates the post object with the
+        HTML content specified in the form data.
+        """
         # create the post
         post = Post(
             title=request.form["title"],
@@ -215,6 +268,10 @@ def create():
         post.save()
 
     elif request.form["post_type"] == "link":
+        """
+        If the post type is "link", the function updates the post object with the
+        web link specified in the form data.
+        """
         # create the post
         post = Post(
             title=request.form["title"],
@@ -231,7 +288,7 @@ def create():
 
         post.save()
 
-    # save the post groups
+    # save the post groups to ensure an association is created
     if "post_groups" in request.form:
         post.save_groups(request.form["post_groups"])
 
@@ -277,7 +334,10 @@ def approve_action(id):
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_posts():
-
+    """
+    This function lists all the posts that a user is authorized to view based on their role and permissions.
+    It also allows filtering of posts by title, state, or id.
+    """
     user = current_user
     policy = PostPolicy(user)
 
@@ -314,14 +374,3 @@ def list_posts():
         "posts/admin/list.html", posts=posts, activeFilters=active_filters
     )
 
-
-@controller.route("/display")
-@login_required
-def display():
-    folder_path = "static/images"  # Replace this with the path to your folder
-
-    files_and_dirs = os.listdir(folder_path)
-    filenames = [file for file in files_and_dirs if os.path.isfile(
-        os.path.join(folder_path, file))]
-    print(filenames)
-    return render_template("display.html", filenames=filenames)

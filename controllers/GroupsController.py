@@ -13,6 +13,12 @@ controller = Blueprint("groups", __name__, template_folder="templates")
 @controller.route("/create", methods=["GET"])
 @login_required
 def create():
+    """
+    Renders the create group page with available users and devices.
+
+    Returns:
+        The rendered HTML template with available users and devices.
+    """
     available_users = User().raw("SELECT id,name FROM users WHERE state = 'ACTIVE' AND (type = 'USER' OR type='ADMINISTRATOR')")
     available_devices = User().raw("SELECT id,name FROM users WHERE state = 'ACTIVE' AND type = 'DEVICE'")
     return render_template("groups/create.html",available_users=available_users,available_devices=available_devices)
@@ -20,6 +26,22 @@ def create():
 @controller.route("/create", methods=["POST"])
 @login_required
 def create_post():
+    """
+    Create a new group with the given name, description, color, and moderation settings.
+
+    Required fields:
+    - name: The name of the group.
+    - description: A brief description of the group.
+
+    Optional fields:
+    - color: The color of the group.
+    - moderation_required: Whether or not moderation is required for the group.
+
+    If moderation is required, available_moderators must also be provided.
+
+    Returns:
+    - Redirects to the groups index page.
+    """
     required_fields = ["name","description"]
     moderation_required = False
 
@@ -46,6 +68,15 @@ def create_post():
 @controller.route("/edit/<id>", methods=["GET"])
 @login_required
 def edit(id):
+    """
+    Edit a group with the given id.
+
+    Args:
+        id (int): The id of the group to edit.
+
+    Returns:
+        str: The rendered HTML template for the edit page, with the group, available users, available moderators, selected moderators, and devices passed as variables.
+    """
     group:Group = Group().find(id)
     users = User().raw("SELECT id,name FROM users WHERE state = 'ACTIVE' AND (type = 'USER' OR type='ADMINISTRATOR')")
     devices = User().raw("SELECT id,name FROM users WHERE type = 'DEVICE'")
@@ -66,6 +97,16 @@ def edit(id):
 @controller.route("/edit/<id>/devices", methods=["POST"])
 @login_required
 def edit_devices(id):
+    """
+    Edit the devices associated with a group.
+
+    Args:
+        id (int): The ID of the group to edit.
+
+    Returns:
+        redirect: A redirect to the edit page for the group.
+
+    """
     group = Group().find(id)
     devices = request.form.getlist("device_id")
 
@@ -79,7 +120,19 @@ def edit_devices(id):
 
 @controller.route("/edit/<id>", methods=["POST"])
 @login_required
-def edit_post(id):
+def edit_group(id):
+    """
+    Edit a group with the given ID.
+
+    Args:
+        id (int): The ID of the group to edit.
+
+    Returns:
+        A redirect to the edit page for the group with the given ID.
+
+    Raises:
+        None.
+    """
     group = Group().find(id)
     required_fields = ["name","description"]
 
@@ -159,6 +212,16 @@ def index():
 
 
 def associate_devices_with_groups(group:Group,devices):
+    """
+    Associates a list of devices with a group.
+
+    Args:
+        group (Group): The group to associate the devices with.
+        devices (list): A list of device IDs to associate with the group.
+
+    Returns:
+        None
+    """
     # cast str to int and remove any empty values
     device_ids = [int(i) for i in devices if i != '' and int(i) != 0]
 
@@ -179,11 +242,18 @@ def associate_devices_with_groups(group:Group,devices):
             GroupDevice(group_id=group.id,device_id=device_id).save()
 
 def associateModeratorsWithGroup(group:Group,moderator_ids):
+    """
+    Associates moderators with a group.
 
+    Args:
+        group (Group): The group to associate moderators with.
+        moderator_ids (list): A list of moderator IDs to associate with the group.
+
+    Returns:
+        list: A list of moderator IDs that were successfully added to the group.
+    """
     # filter moderator_ids to only include integers and remove '' values or 0 values
     moderator_ids = [int(i) for i in moderator_ids if i != '' and int(i) != 0]
-
-    print("moderator ids ",moderator_ids)
 
     added_moderators = []
     current_moderators = group.getModerators()
