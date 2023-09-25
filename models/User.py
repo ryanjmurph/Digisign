@@ -51,7 +51,6 @@ class User(Query):
 
     def find(self, email):
         connection = self.getDatabaseConnection()
-        print(f"Trying to find user with email {email}")
         with connection.cursor() as cursor:
             sql = "SELECT * FROM users WHERE email=%s"
             cursor.execute(sql, (email))
