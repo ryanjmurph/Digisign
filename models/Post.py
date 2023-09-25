@@ -293,7 +293,6 @@ class Post(Query):
 
 
     def get_pending_posts_count(self,query=None,group_ids=None):
-        group_ids = ",".join([str(id) for id in group_ids])
         if query is not None:
             sql = f"SELECT COUNT(*) FROM posts WHERE state = 'PENDING' AND {query} "
             with connection.cursor() as cursor:
@@ -301,6 +300,7 @@ class Post(Query):
                 result = cursor.fetchone()
                 return result["COUNT(*)"]
         elif group_ids is not None:
+            group_ids = ",".join([str(id) for id in group_ids])
             sql = f"SELECT COUNT(*) FROM posts WHERE state = 'PENDING' AND id IN (SELECT post_id FROM post_groups_subscription WHERE group_id IN ({group_ids}))"
             with connection.cursor() as cursor:
                 cursor.execute(sql)

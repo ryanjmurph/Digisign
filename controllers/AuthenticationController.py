@@ -56,7 +56,7 @@ def register_post():
         flash("Username already exists", "error")
         return redirect(url_for("authentication_controller.register"))
 
-    pw_hash = bcrypt.generate_password_hash(password)
+    pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
     user = User(email=username, password=pw_hash, name=name,
                 type="USER", state="APPROVAL_REQUIRED")
@@ -95,16 +95,15 @@ def login_post():
             "The username or password you entered is incorrect [username]", "error")
         return redirect(url_for("authentication_controller.login"))
 
-    if user.get_state() == "APPROVAL_REQUIRED":
-        flash("Your account is not approved yet", "error")
-        return redirect(url_for("authentication_controller.login"))
+    # if user.get_state() == "APPROVAL_REQUIRED":
+    #     flash("Your account is not approved yet", "error")
+    #     return redirect(url_for("authentication_controller.login"))
 
     if user.get_state() == "INACTIVE" or user.get_state() == "DELETED":
         flash("Your account is not active. Kindly reach out to an administrator", "error")
         return redirect(url_for("authentication_controller.login"))
 
-    pw_hash = bcrypt.generate_password_hash(password)
-    password_correct = bcrypt.check_password_hash(pw_hash, password)
+    password_correct = bcrypt.check_password_hash(user.password, password)
 
     if not password_correct:
         flash("The username or password you entered is incorrect", "error")
