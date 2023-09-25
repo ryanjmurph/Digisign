@@ -54,8 +54,17 @@ class Post(Query):
         self.id = id
         self.title = title
         self.type = type
-        self.start_date = startDate
-        self.end_date = endDate
+
+        if startDate is not None:
+            if isinstance(startDate, datetime.datetime):
+                startDate = startDate.strftime("%Y-%m-%d")
+            self.start_date = startDate
+
+        if endDate is not None:
+            if isinstance(endDate, datetime.datetime):
+                endDate = endDate.strftime("%Y-%m-%d")
+            self.end_date = endDate
+
         self.image_link = imageLink
         self.created_by = created_by
         self.html_content = htmlContent
@@ -261,7 +270,6 @@ class Post(Query):
             start_date = datetime.datetime.now().strftime("%Y-%m-%d")
             end_date = datetime.datetime.now().strftime("%Y-%m-%d")
             sql = f"SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') AND start_date <= '{start_date}' AND end_date >= '{end_date}' ORDER BY id DESC"
-            print(sql)
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 result = cursor.fetchall()

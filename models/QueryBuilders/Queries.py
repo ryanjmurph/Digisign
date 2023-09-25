@@ -82,7 +82,7 @@ class Query(JoinRelationship):
         sql = sql[:-2]
         sql += ")"
         
-        print(f"\n\nSQL: {sql}\n\n")
+        # print(f"\n\nSQL: {sql}\n\n")
 
         with connection.cursor() as cursor:
             cursor.execute(sql)
@@ -107,6 +107,8 @@ class Query(JoinRelationship):
         with connection.cursor() as cursor:
             cursor.execute(sql)
             result = cursor.fetchone()
+            if result is None:
+                return None
             return self.castResultToModel(result)
 
     def get(self):
@@ -118,6 +120,16 @@ class Query(JoinRelationship):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
+    
+    def delete(self):
+        connection = self.getDatabaseConnection()
+
+        sql = f"DELETE FROM {self.getTableName()} WHERE id = {self.id}"
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            connection.commit()
+            return True
 
     def getClauses(self) -> str:
         clauses_string = ""
@@ -166,7 +178,7 @@ class Query(JoinRelationship):
         if not self.id or self.id is None:
             raise Exception("Cannot update a record without an id")
 
-        print(f"self.id: {self.id}")
+        # print(f"self.id: {self.id}")
         if data is None:
             data = self.__dict__
 
@@ -181,7 +193,7 @@ class Query(JoinRelationship):
 
         sql += f" WHERE id = {self.id}"
 
-        print(f"\n\nSQL: {sql}\n\n")
+        # print(f"\n\nSQL: {sql}\n\n")
 
         connection = self.getDatabaseConnection()
 

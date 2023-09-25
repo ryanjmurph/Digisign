@@ -82,15 +82,6 @@ class User(Query):
             else:
                 return None
 
-    def noLines():
-        # connection = self.getDatabaseConnection()
-        with connection.cursor() as cursor:
-            sql = "SELECT COUNT(email) from USERS"
-            cursor.execute(sql)
-            result = cursor.fetchone()
-            count = result["COUNT(email)"]
-            return count
-
     def insert(self):
         connection = self.getDatabaseConnection()
         with connection.cursor() as cursor:
@@ -122,15 +113,10 @@ class User(Query):
         self.updated_at = user["updated_at"]
         return self
 
-    @property
+    
     def is_authenticated(self):
         return True
-
-    @property
-    def is_active(self):
-        return True
-
-    @property
+    
     def is_anonymous(self):
         return False
 
