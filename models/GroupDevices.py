@@ -29,10 +29,12 @@ class GroupDevices(Query):
         return self
     
     def get_groups_for_device(self, device_id):
-        self.device_id = device_id        
-        results = self.raw(f"SELECT * FROM {self.table_name} WHERE device_id = '{self.device_id}'")
+        self.device_id = device_id
+        sql = f"""
+            SELECT {self.table_name}.*,post_groups.color
+            from {self.table_name}
+            JOIN post_groups ON {self.table_name}.group_id = post_groups.id
+            WHERE {self.table_name}.device_id = {self.device_id}"""        
+        results = self.raw(sql)
 
-        print(results)
-
-        group_ids = [res["group_id"] for res in results]
-        return group_ids
+        return results

@@ -237,7 +237,14 @@ class Post(Query):
                 result = cursor.fetchall()
                 return result 
         elif group_ids is not None:
-            sql = f"SELECT * FROM posts WHERE (state = 'PUBLISHED' or state = 'APPROVED') AND id IN (SELECT post_id FROM post_groups_subscription WHERE group_id IN ({group_ids})) ORDER BY id DESC"
+            sql = f"""
+                    SELECT posts.*, post_groups_subscription.group_id
+                    FROM posts
+                    JOIN post_groups_subscription ON posts.id = post_groups_subscription.post_id
+                    WHERE (posts.state = 'PUBLISHED' OR posts.state = 'APPROVED')
+                    AND post_groups_subscription.group_id IN ({group_ids})
+                    ORDER BY posts.id DESC
+                """
             with connection.cursor() as cursor:
                 cursor.execute(sql)
                 result = cursor.fetchall()

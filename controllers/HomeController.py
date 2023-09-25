@@ -22,28 +22,32 @@ def welcome_page():
 @login_required
 def display():
     if not DisplayPolicy(current_user).can_view_displays():
-        error_message="Only devices  are allowed to access this page"
+        error_message="Only devices are allowed to access this page"
         return render_template("home/error.html", error_message=error_message)
     
     # get posts the device can access
-    group = Group()
-    group_ids = GroupDevices(device_id=current_user.id).get_groups_for_device(current_user.id)
+    groups = GroupDevices(device_id=current_user.id).get_groups_for_device(current_user.id)
+    group_ids = [res["group_id"] for res in groups]
     posts = Post().get_active_posts(group_ids=group_ids)
-    print(posts)
+
+    # associate the group_id to the post
+    
+
 
     
-    ids = [item['id'] for item in posts]
-    display_times = [item['display_time'] for item in posts]
+    # append the background color to the post as from the group
+    for post in posts:
+        # using post.group_id, get the group color from the groups array
+        found_res = [found for found in groups if found["id"] == post["group_id"]]
+        if len(found_res) == 0:
+            post['background_color'] = None
+        else:
+            group_color = found_res[0]["color"]
+            post['background_color'] = group_color
 
-    colors = []
-    for id in ids: 
-        array = group.getGroupID(id)
-        number = array[0]["group_id"]
-        colordict = group.getColors(number)
-        colors.append(colordict[0]["color"])
 
 
-    return render_template("home/display.html", posts=posts,colors = colors)
+    return render_template("home/display.html", posts=posts)
 
 
 @controller.route("dashboard", methods=["GET"])

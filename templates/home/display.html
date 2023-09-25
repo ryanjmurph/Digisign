@@ -31,7 +31,7 @@
     }
 
     function displayPost(post) {
-        console.log(`Displaying post ${post.id} of type ${post.type} with display time of ${post.display_time}`);
+        changeBackgroundColor(post.background_color);
         toggleQRContainer(false);
         // Display the post based on its type
         if (post.type.toLowerCase() === "html") {
@@ -48,7 +48,6 @@
 
         // if post has a Qr code, display it on the side of display
         if (post.qr_code_link && post.qr_code_link != "") {
-            console.log(`Displaying QR Code for post ${post.id}`);
             displayQRCode(post.qr_code_link);
         }
 
@@ -75,6 +74,13 @@
             document.getElementById("qr-container").style.display = "block";
         }else{
             document.getElementById("qr-container").style.display = "none";
+        }
+    }
+
+    function changeBackgroundColor(color){
+        if (color != null){
+            // change body background color
+            document.body.style.backgroundColor = color;
         }
     }
 

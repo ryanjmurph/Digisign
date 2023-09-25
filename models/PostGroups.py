@@ -3,11 +3,12 @@
 # Pivot model for linking posts to groups
 
 from database.database import MYSQL
+from models.QueryBuilders.Queries import Queries
 
 connection = MYSQL().get_connection()
 
 
-class PostGroup:
+class PostGroup(Queries):
     def __init__(self) -> None:
         pass
 
@@ -30,3 +31,4 @@ class PostGroup:
             cursor.execute(sql, (post_id))
             result = cursor.fetchall()
             return result
+
