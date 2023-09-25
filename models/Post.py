@@ -23,6 +23,7 @@ class Post(Query):
     created_by = None
     created_at = None
     updated_at = None
+    display_time = None
 
     relationship = {
         "groups": {
@@ -32,7 +33,7 @@ class Post(Query):
         },
     }
 
-    fillable = ["id","title","type","start_date","end_date","image_link","html_content","web_link","state","created_by","created_at","updated_at"]
+    fillable = ["id","title","type","start_date","end_date","image_link","html_content","web_link","state","created_by","created_at","updated_at","display_time"]
 
     connection = MYSQL().get_connection()
 
@@ -48,6 +49,7 @@ class Post(Query):
         htmlContent=None,
         webLink=None,
         state=None,
+        display_time = None
     ) -> None:
         self.id = id
         self.title = title
@@ -59,6 +61,7 @@ class Post(Query):
         self.html_content = htmlContent
         self.web_link = webLink
         self.state = state
+        self.display_time = display_time
 
     def createInstance(self, result):
         # parse the row into an instance of the post model
@@ -118,7 +121,7 @@ class Post(Query):
 
     def insert(self):
         with connection.cursor() as cursor:
-            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)"
+            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by,display_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
 
             cursor.execute(
                 sql,
@@ -131,7 +134,8 @@ class Post(Query):
                     self.html_content,
                     self.web_link,
                     self.state,
-                    self.created_by
+                    self.created_by,
+                    self.display_time
                 ),
             )
             connection.commit()
@@ -286,6 +290,9 @@ class Post(Query):
     def associateDevices(self, devices):
         self.device_id = device_id
         return self
+
+    def getDisplayTime(self):
+        return self.display_time
 
     @staticmethod
     def createQR(webLink, code):

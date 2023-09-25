@@ -26,6 +26,10 @@
             </div>
 
             {% include "groups/components/moderator-control.html" %}
+            <div class="mb-3">
+                <label for="groupColor" class="form-label"> <strong>Background Color</strong> </label>
+                <input type="color" id="color" name="color" value="#FFFFFF">
+            </div>
 
             <button class="btn btn-primary" type="submit">Create Group</button>
         </form>
