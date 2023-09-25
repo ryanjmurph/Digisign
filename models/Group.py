@@ -153,3 +153,17 @@ class Group(Query):
             cursor.execute(sql)
             result = cursor.fetchall()
             return result
+        
+    def add_moderator(self, user_id):
+        relationship = self.relationship["moderators"]
+        with self.connection.cursor() as cursor:
+            sql = f"INSERT INTO {relationship['table']} ({relationship['foreign_key']},user_id) VALUES ({self.id},{user_id})"
+            cursor.execute(sql)
+            self.connection.commit()
+
+    def add_post(self,post_id):
+        relationship = self.relationship["posts"]
+        with self.connection.cursor() as cursor:
+            sql = f"INSERT INTO {relationship['table']} ({relationship['foreign_key']},post_id) VALUES ({self.id},{post_id})"
+            cursor.execute(sql)
+            self.connection.commit()
