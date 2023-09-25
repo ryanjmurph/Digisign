@@ -1,45 +1,28 @@
-{% extends "layouts/base.html" %}
+{% extends "layouts/display.html" %}
 {% block content %}
-<body style="background-color: {{ colors[0] }};"></body>
 <div>
-    <h3>Display Page</h3>
-    
     <div class="container">
-        <div class="row justify-content-center align-items-center">
-            <div class="col-auto">
-                <div id="html-display">
-                    <p>This is a html :\)</p>
-                </div>
+        <div class="row justify-content-center align-items-center" id="display-container" style="height: 100vh;">
+            <div class="col-lg-8 justify-content-center align-items-center">
+                <div id="display" style="min-width: 100%;"></div>
             </div>
-            <div class="col-auto">
-                <div id="image-display">
-                    <img style="max-width: 100vw;"  src="https://via.placeholder.com/150" alt="Image Display">
+            
+            <div class="col-lg-2 justify-content-center align-items-center" id="qr-container" style="display: none;">
+                <div class="d-flex justify-content-center align-items-center" style="height: 100%;" id="qrcode-display">
+                    <img src="" alt="QR Code" style="max-height: 100vh;" />
                 </div>
-            </div>
-            <div class="col-auto">
-                <div id="weblink-display">
-                    <iframe src="https://iframetester.com" title="Weblink Display" frameborder="0"></iframe>
-                </div>
-            </div>
-            <div class="col">
-                <div id="qrcode-display"></div>
             </div>
         </div>
-
-        
-            <div class="progress" role="progressbar" aria-label="Progress Bar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="height: 1px;">
-                <div id="progress-bar" class=" bg-success progress-bar progress-bar-striped progress-bar-animated"></div>
-              </div>
-        
-
-
+        <div class="progress" role="progressbar" aria-label="Progress Bar" aria-valuenow="100" aria-valuemin="0"
+            aria-valuemax="100" style="height: 1px;">
+            <div id="progress-bar" class=" bg-success progress-bar progress-bar-striped progress-bar-animated"></div>
+        </div>
     </div>
 
 </div>
 
 <script>
-    var allPosts = {{ posts|tojson }};
-    var colors = {{ colors|tojson }};
+    var allPosts = {{ posts| tojson }};
     var currentPostIndex = 0;
 
     function fetchNewPosts() {
@@ -47,24 +30,26 @@
         window.location.reload();
     }
 
-    function displayPost(post, color) {
+    function displayPost(post) {
         console.log(`Displaying post ${post.id} of type ${post.type} with display time of ${post.display_time}`);
-        document.body.style.backgroundColor = color;
-
-        // Hide all display elements
-        hideAllDisplayElements();
-
+        toggleQRContainer(false);
         // Display the post based on its type
         if (post.type.toLowerCase() === "html") {
             displayHTML(post.html_content);
         } else if (post.type.toLowerCase() == "image") {
             // display image
             displayImage(post.image_link);
-        } else if (post.type.toLowerCase() == "weblink") {
+        } else if (post.type.toLowerCase() == "web_link") {
             // display weblink
-            displayPost(post.web_link);
+            displayWeblink(post.web_link);
         } else {
             console.log(`Error: Post type ${post.type} not found`);
+        }
+
+        // if post has a Qr code, display it on the side of display
+        if (post.qr_code_link && post.qr_code_link != "") {
+            console.log(`Displaying QR Code for post ${post.id}`);
+            displayQRCode(post.qr_code_link);
         }
 
         // Calculate the next post index
@@ -72,52 +57,43 @@
 
         // Set a timeout to display the next post after a delay
         setTimeout(function () {
-            displayPost(allPosts[currentPostIndex], colors[currentPostIndex]);
+            displayPost(allPosts[currentPostIndex]);
         }, post.display_time * 1000); // Convert display_time to milliseconds
     }
 
-    function hideAllDisplayElements() {
-        var elements = ["html-display", "image-display", "weblink-display", "qrcode-display"];
-        elements.forEach(function (elementId) {
-            toggleDisplayElementVisibility(elementId, false);
-        });
-    }
-
-    function toggleDisplayElementVisibility(elementId, display) {
-        var element = document.getElementById(elementId);
-        if (element) {
-            element.style.display = display ? "block" : "none";
-        }
-    }
-
     function displayHTML(htmlContent) {
-        var htmlDisplay = document.getElementById("html-display");
-        if (htmlDisplay) {
-            htmlDisplay.innerHTML = htmlContent;
-            toggleDisplayElementVisibility("html-display", true);
+        document.getElementById("display").innerHTML = htmlContent;
+    }
+
+    function displayQRCode(link){
+        toggleQRContainer(true);
+        document.getElementById("qrcode-display").innerHTML = `<img src="${link}" alt="QR Code" style="max-height: 100vh;" />`;
+    }
+
+    function toggleQRContainer(display){
+        if (display){
+            document.getElementById("qr-container").style.display = "block";
+        }else{
+            document.getElementById("qr-container").style.display = "none";
         }
     }
 
 
     function displayImage(imagePath) {
-        var imageDisplay = document.getElementById("image-display");
-        if (imageDisplay) {
-            // display the image
-            document.getElementById("image-display").innerHTML = `<img src="${imagePath}" style="max-height:100vh" class="img-fluid" alt="Image Display">`;
-            toggleDisplayElementVisibility("image-display", true);
-        }
+        document.getElementById("display").innerHTML = `<img src="${imagePath}" alt="Image Display" style="max-height:100vh" />`;
     }
 
     function displayWeblink(webLinkPath) {
-        var weblinkDisplay = document.getElementById("weblink-display");
-        if (weblinkDisplay) {
-            weblinkDisplay.innerHTML = `<iframe src="${webLinkPath}" title="Weblink Display" frameborder="0"></iframe>`;
-            toggleDisplayElementVisibility("weblink-display", true);
-        }
+        document.getElementById("display").innerHTML = `<iframe src="${webLinkPath}" style="height:100vh;width:100%;border:none;"></iframe>`;
     }
 
     document.addEventListener("DOMContentLoaded", function (event) {
-        displayPost(allPosts[currentPostIndex], colors[currentPostIndex]);
+        if (allPosts.length == 0) {
+            // No posts to display
+            console.log("No posts to display");
+            return;
+        }
+        displayPost(allPosts[currentPostIndex]);
     });
 
 </script>

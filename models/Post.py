@@ -3,9 +3,13 @@
 # Post database model using Pysql
 
 import datetime
+import uuid
+import qrcode
+
 from database.database import MYSQL
 from models.QueryBuilders.Queries import Query
-import qrcode
+from config import storage_dir
+
 
 connection = MYSQL().get_connection()
 
@@ -19,6 +23,7 @@ class Post(Query):
     image_link = None
     html_content = None
     web_link = None
+    qr_code_link = None
     state = "DRAFT"
     created_by = None
     created_at = None
@@ -33,7 +38,7 @@ class Post(Query):
         },
     }
 
-    fillable = ["id","title","type","start_date","end_date","image_link","html_content","web_link","state","created_by","created_at","updated_at","display_time"]
+    fillable = ["id","title","type","start_date","end_date","image_link","html_content","web_link","qr_code_link","display_time","state","created_by","created_at","updated_at","display_time"]
 
     connection = MYSQL().get_connection()
 
@@ -127,29 +132,6 @@ class Post(Query):
                 return result['COUNT(*)']
             else:
                 return 0
-
-    def insert(self):
-        with connection.cursor() as cursor:
-            sql = "INSERT INTO posts (title, type, start_date,end_date,image_link,html_content,web_link,state,created_by,display_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
-
-            cursor.execute(
-                sql,
-                (
-                    self.title,
-                    self.type,
-                    self.start_date,
-                    self.end_date,
-                    self.image_link,
-                    self.html_content,
-                    self.web_link,
-                    self.state,
-                    self.created_by,
-                    self.display_time
-                ),
-            )
-            connection.commit()
-            self.id = cursor.lastrowid
-        return self
 
     def updates(self, changes):
         # Changes is a dict containing the changes to be made
@@ -294,6 +276,20 @@ class Post(Query):
                 cursor.execute(sql)
                 result = cursor.fetchone()
                 return result["COUNT(*)"]
+            
+    def create_qr(self,field="web_link"):
+        # create a qr code for the post
+        qr = qrcode.QRCode(version=1, box_size=5, border=1)
+        qr.add_data(getattr(self,field))
+        qr.make(fit=True)
+        img = qr.make_image()
+
+        # save the qr code using a random name
+        name = str(uuid.uuid4())+".jpg"
+        location_path = storage_dir+"/"+name
+        img.save(location_path)
+        self.qr_code_link = location_path
+        return location_path
 
     def associateDevices(self, devices):
         self.device_id = device_id
@@ -301,16 +297,3 @@ class Post(Query):
 
     def getDisplayTime(self):
         return self.display_time
-
-    @staticmethod
-    def createQR(webLink, code):
-        if code:
-            qr = qrcode.QRCode(version=1, box_size=5, border=1)
-            qr.add_data(webLink)
-            qr.make(fit=True)
-            img = qr.make_image()
-            name = webLink+"qr.jpg"
-            img.save("static/images/"+name)
-        else:
-            file = "static/images/"+webLink+".txt"
-            open(file, 'w').close()

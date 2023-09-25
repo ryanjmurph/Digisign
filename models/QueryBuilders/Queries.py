@@ -88,7 +88,8 @@ class Query(JoinRelationship):
             cursor.execute(sql)
             connection.commit()
 
-        return self.find(cursor.lastrowid)
+        self.id = cursor.lastrowid
+        return self
 
     def getDatabaseConnection(self):
         # check if connection is defined in the child class

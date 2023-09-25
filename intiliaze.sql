@@ -55,7 +55,9 @@ CREATE TABLE posts (
     image_link VARCHAR(255) NULL,
     html_content MEDIUMTEXT NULL,
     web_link VARCHAR(255) NULL,
+    qr_code_link VARCHAR(255) NULL,
     state ENUM('DRAFT', 'PENDING_APPROVAL', 'APPROVED','PUBLISHED', 'WITHDRAWN') DEFAULT 'DRAFT',
+    display_time INT NULL,
     created_by INT NULL,
     INDEX user_id (created_by),
     FOREIGN KEY (created_by)
@@ -63,7 +65,6 @@ CREATE TABLE posts (
         ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    display_time INT NULL,
 );
 
 CREATE TABLE post_groups_subscription (

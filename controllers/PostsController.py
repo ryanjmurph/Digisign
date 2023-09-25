@@ -161,7 +161,7 @@ def update_post(id):
 @controller.route("/new", methods=["POST"])
 @login_required
 def create():
-    required_fields = ["title", "start_date", "end_date", "post_type"]
+    required_fields = ["title", "start_date", "end_date", "post_type","display_time"]
 
     for field in required_fields:
         if field not in request.form:
@@ -191,9 +191,13 @@ def create():
             created_by=current_user.get_id(),
             display_time = request.form["display_time"]
         )
+        # if QR code is present in the form, create a QR code, store it in
+        # the static/images folder and update the post
+        if "add_qr_code" in request.form:
+            post.create_qr("image_link")
 
         # save the post
-        post.insert()
+        post.save()
 
     elif request.form["post_type"] == "html":
         # create the post
@@ -208,7 +212,7 @@ def create():
             display_time = request.form["display_time"]
         )
         # save the post
-        post.insert()
+        post.save()
 
     elif request.form["post_type"] == "link":
         # create the post
@@ -222,17 +226,10 @@ def create():
             created_by=current_user.get_id(),
             display_time = request.form["display_time"]
         )
-        # Check if the "Add QR code" checkbox is checked
-        add_qr_code = request.form.get("add_qr_code")
-        if add_qr_code:
-            web_link = request.form["web_link"]
-            post.createQR(web_link, True)
+        if "add_qr_code" in request.form:
+            post.create_qr("web_link")
 
-        else:
-            web_link = request.form["web_link"]
-            post.createQR(web_link, False)
-
-        post.insert()
+        post.save()
 
     # save the post groups
     if "post_groups" in request.form:

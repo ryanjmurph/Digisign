@@ -1,11 +1,13 @@
 from flask import Blueprint, redirect, render_template,url_for
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 from models.Post import Post
 from models.User import User
 from models.GroupDevices import GroupDevices
 from models.GroupModerator import GroupModerator
 from models.Group import Group
+
+from flask_login import current_user, login_required
 
 from policies.DisplayPolicy import Policy as DisplayPolicy
 
@@ -17,6 +19,7 @@ def welcome_page():
     return redirect(url_for("home_controller.dashboard"))
 
 @controller.route("/display", methods=["GET"])
+@login_required
 def display():
     if not DisplayPolicy(current_user).can_view_displays():
         error_message="Only devices  are allowed to access this page"
@@ -44,6 +47,7 @@ def display():
 
 
 @controller.route("dashboard", methods=["GET"])
+@login_required
 def dashboard():
 
     if current_user.get_type() == "DEVICE":
