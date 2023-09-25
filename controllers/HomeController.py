@@ -79,7 +79,9 @@ def dashboard():
         counts["active_posts_count"] = len(Post().get_active_posts())
 
     elif current_user.isModerator():
-        group_ids = GroupModerator(user=current_user).getGroupsCanModerate()
+        groups = GroupModerator(user=current_user).getGroupsCanModerate()
+        group_ids = [res["group_id"] for res in groups]
+
         counts["pending_posts_count"] = Post().get_pending_posts_count(group_ids=group_ids)
     else:
         counts["active_posts_count"] = len(Post().get_active_posts(user_id=current_user.id))

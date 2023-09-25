@@ -6,9 +6,44 @@ import re
 from models.QueryBuilders.EagerLoadRelationship import JoinRelationship
 
 
+
 class Query(JoinRelationship):
-    def __init__(self) -> None:
-        pass
+    """
+A class that provides methods for building database queries.
+
+Methods
+-------
+raw(sql: str) -> Any
+    Executes a raw SQL query and returns the result.
+where(column: str, value: Any, operator: str = "=") -> Query
+    Adds a WHERE clause to the query.
+addSort(column: str, order: str) -> Query
+    Adds a sorting clause to the query.
+addLimit(limit: int) -> Query
+    Adds a limit clause to the query.
+getCasts() -> Dict[str, str]
+    Returns the casts dictionary.
+isAttributeCastable(casts: Dict[str, str], attribute: str) -> bool
+    Returns True if the attribute is castable, False otherwise.
+castAttribute(casts: Dict[str, str], attribute: str, value: Any) -> Any
+    Casts the attribute to the specified type.
+getFillableColumns() -> List[str]
+    Returns the fillable columns.
+save() -> Query
+    Saves the model to the database.
+find(id: int) -> Optional[Query]
+    Finds a model by ID.
+get() -> List[Dict[str, Any]]
+    Returns a list of models.
+delete() -> bool
+    Deletes the model from the database.
+getClauses() -> str
+    Returns the clauses string.
+prepareValues(values: Dict[str, Any]) -> Dict[str, Any]
+    Prepares the values for insertion into the database.
+makeValuesSafe(values: Dict[str, Any]) -> Dict[str, Any]
+    Escapes the values to prevent SQL injection.
+"""
 
     def raw(self, sql):
         connection = self.getDatabaseConnection()

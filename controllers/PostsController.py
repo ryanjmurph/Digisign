@@ -5,6 +5,7 @@
 import os
 from flask import Blueprint, redirect, flash,render_template, abort, request, url_for
 from flask_login import current_user, login_required
+from models.GroupModerator import GroupModerator
 from models.Post import Post
 from models.Group import Group
 
@@ -17,13 +18,25 @@ controller = Blueprint("posts", __name__, template_folder="templates")
 @controller.route("/", methods=["GET"])
 @login_required
 def index():
-    posts = Post().all()
+    posts = Post().get_my_posts()
     return render_template("posts/index.html", posts=posts)
 
 
 @controller.route("/<int:id>/edit", methods=["GET"])
 @login_required
 def edit(id):
+    """
+    Edit a post with the given id.
+
+    Args:
+        id (int): The id of the post to edit.
+
+    Returns:
+        str: The rendered HTML template for editing the post.
+
+    Raises:
+        HTTPException: If the user is not authorized to edit the post.
+    """
     post = Post().find(id)
 
     post.groups = post.get_groups()
@@ -35,16 +48,52 @@ def edit(id):
         message = "You are not authorized to view this post"
         return render_template("errors/401.html", error_message=message)
     
-    permissions = [
-        canApprovePost := PostPolicy(current_user).canApprovePost(post),
-        canWithdrawPost := PostPolicy(current_user).canEditPost(post),
-        canEditPost := PostPolicy(current_user).canEditPost(post),
-    ]
+    permissions = {
+        "canApprovePost" : PostPolicy(current_user).canApprovePost(post),
+        "canWithdrawPost" : PostPolicy(current_user).canEditPost(post),
+        "canEditPost" : PostPolicy(current_user).canEditPost(post),
+    }
+
+    
 
     return render_template("posts/edit.html", post=post, groups=Group.all(),permissions=permissions)
 
+@controller.route("/<int:id>/approvePost", methods=["GET"])
+@login_required
+def approve_post(id):
+    if not PostPolicy(current_user).canApprovePost(Post().find(id)):
+        return render_template("errors/401.html", error_message="You are not authorized to approve this post")
+    
+    groups_can_moderate = GroupModerator(user=current_user).getGroupsCanModerate()
+    group_ids = [group["group_id"] for group in groups_can_moderate]
+
+    post = Post().find(id)
+    
+    # update all post_group_subscription records for this post
+    # read the action from the query string
+    action = request.args["action"]
+    if action == "APPROVE":
+        Post().raw(f"UPDATE post_groups_subscription SET state = 'APPROVED' WHERE post_id = {post.id} AND group_id IN ({','.join(map(str,group_ids))})")
+    else:
+        Post().raw(f"UPDATE post_groups_subscription SET state = 'REJECTED' WHERE post_id = {post.id} AND group_id IN ({','.join(map(str,group_ids))})")
+
+    return redirect(url_for("posts.list_posts"))
+
 @controller.route("/<int:id>/postState", methods=["POST"])
 def update_post_state(id):
+    """
+    Update the state of a post with the given id.
+
+    Args:
+        id (int): The id of the post to update.
+
+    Returns:
+        A redirect to the edit page of the updated post.
+
+    Raises:
+        404 error if the post with the given id is not found.
+        401 error if the current user is not authorized to manage or edit the post.
+    """
     post = Post().find(id)
     if post is None:
         return abort(404, f"Post with id {id} not found")
@@ -80,8 +129,18 @@ def update_post_state(id):
 
 
 
-@controller.route("/<int:id>/edit", methods=["POST"])
+@controller.route("/<int:id>/edit", methods=["POST"])    
 def update_post(id):
+    """
+    Updates an existing post with the given `id` using the data submitted in the request form.
+    If the post is not found, returns a 404 error.
+    If the current user is not authorized to edit the post, returns a 401 error.
+    If the post type is changed from "IMAGE" to something else, removes the previous image.
+    If the post type is changed to "IMAGE" and a new image is provided, saves the new image and updates the image link.
+    If the post type is "HTML" or "WEB_LINK", updates the corresponding fields.
+    Saves the post groups if they are included in the request form.
+    Redirects to the list of posts with a success message.
+    """
     post = Post().find(id)
     if post is None:
         return abort(404, f"Post with id {id} not found")
@@ -139,7 +198,8 @@ def update_post(id):
 
     elif request.form["post_type"] == "link":
         attributes["type"] = "WEB_LINK"
-        attributes["web_link"] = request.form["webLink"]
+        print("requestform",request.form)
+        attributes["web_link"] = request.form["web_link"]
         post.fillable.append("web_link")
 
     # update the post
@@ -161,14 +221,27 @@ def update_post(id):
 @controller.route("/new", methods=["POST"])
 @login_required
 def create():
+    """
+    Creates a new post based on the form data submitted by the user.
+
+    All required fields are checked to ensure they are present in the form data
+    before the Post is saved to the DB.
+    """
     required_fields = ["title", "start_date", "end_date", "post_type","display_time"]
 
     for field in required_fields:
         if field not in request.form:
             return abort(400, f"Required field {field} is missing")
 
+    
+
+
     # available post types image,html,link
     if request.form["post_type"] == "image":
+        """
+        If the post type is "image", the function also saves the image file to the
+        static/images folder and updates the post object with the image link.
+        """
         # store the image in the static/images folder
         image = request.files["image"]
 
@@ -200,6 +273,10 @@ def create():
         post.save()
 
     elif request.form["post_type"] == "html":
+        """
+        If the post type is "html", the function updates the post object with the
+        HTML content specified in the form data.
+        """
         # create the post
         post = Post(
             title=request.form["title"],
@@ -215,6 +292,10 @@ def create():
         post.save()
 
     elif request.form["post_type"] == "link":
+        """
+        If the post type is "link", the function updates the post object with the
+        web link specified in the form data.
+        """
         # create the post
         post = Post(
             title=request.form["title"],
@@ -231,7 +312,7 @@ def create():
 
         post.save()
 
-    # save the post groups
+    # save the post groups to ensure an association is created
     if "post_groups" in request.form:
         post.save_groups(request.form["post_groups"])
 
@@ -277,51 +358,38 @@ def approve_action(id):
 @controller.route("/admin-view", methods=["GET"])
 @login_required
 def list_posts():
-
+    """
+    This function lists all the posts that a user is authorized to view based on their role and permissions.
+    It also allows filtering of posts by title, state, or id.
+    """
     user = current_user
     policy = PostPolicy(user)
 
-    if policy.canViewAdminPostList():
-        userposts = Post().all()
-    elif policy.canViewPostList():
-        userposts = Post().postsCreatedBy(current_user.get_id())
-    else:
+    if not policy.canViewAdminPostList() and not policy.canViewPostList():
         error_message = "You are not authorized to view this page"
         return render_template("errors/401.html", error_message=error_message)
+    
+    pending_posts = []
+    # if is a moderator, fetch pending posts as well
+    if policy.can_view_moderator_posts():
+        groups_can_moderate = GroupModerator(user=user).getGroupsCanModerate()
+        
+        group_ids = [group["group_id"] for group in groups_can_moderate]
+        pending_posts = Post().get_pending_posts(group_ids)
+    
+    userposts = Post().get_my_posts(user=current_user)
 
     active_filters = ""
 
     if "filter" in request.args:
-        # check for filter by name
-        if request.args["filter"] == "title":
-            posts = Post().filter_by_title(request.args["search"])
-            active_filters = "title=" + request.args["search"]
-
-        # check for filter by state
-        if request.args["filter"] == "state":
-            posts = Post().filter_by_state(request.args["search"])
-            active_filters = "state=" + request.args["search"]
-
-        # check for filter by id
-        if request.args["filter"] == "id":
-            posts = Post().filter_by_id(request.args["search"])
-            active_filters = "id=" + request.args["search"]
+        posts = Post().filter_results(userposts,request.args["filter"],request.args["search"],"=")
+        active_filters = request.args["filter"] + "=" + request.args["search"]
     else:
         posts = userposts
+    
 
     # return the form in templates/posts/create.html
     return render_template(
-        "posts/admin/list.html", posts=posts, activeFilters=active_filters
+        "posts/admin/list.html", posts=posts, activeFilters=active_filters,pending_posts=pending_posts
     )
 
-
-@controller.route("/display")
-@login_required
-def display():
-    folder_path = "static/images"  # Replace this with the path to your folder
-
-    files_and_dirs = os.listdir(folder_path)
-    filenames = [file for file in files_and_dirs if os.path.isfile(
-        os.path.join(folder_path, file))]
-    print(filenames)
-    return render_template("display.html", filenames=filenames)

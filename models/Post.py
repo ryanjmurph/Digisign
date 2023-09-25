@@ -8,7 +8,10 @@ import qrcode
 
 from database.database import MYSQL
 from models.QueryBuilders.Queries import Query
+from models.User import User
 from config import storage_dir
+
+from policies.UserPolicy import Policy as UserPolicy
 
 
 connection = MYSQL().get_connection()
@@ -263,7 +266,32 @@ class Post(Query):
                 cursor.execute(sql)
                 result = cursor.fetchall()
                 return result
-        
+
+    def get_pending_posts(self,group_ids=None):
+        group_ids = ",".join([str(id) for id in group_ids])
+        start_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        if group_ids is None:
+            sql = f""" 
+                    select * from posts where state = 'PENDING' and start_date <= '{start_date}' and end_date >= '{end_date}'
+                    """
+        else:
+            # select all posts where post.id in post_groups_subscription where group_id in group_ids
+            sql = f"""
+                    SELECT posts.*, post_groups_subscription.group_id
+                    FROM posts
+                    JOIN post_groups_subscription ON posts.id = post_groups_subscription.post_id
+                    WHERE post_groups_subscription.state = 'PENDING_APPROVAL'
+                    AND post_groups_subscription.group_id IN ({group_ids})
+                    AND start_date <= '{start_date}' AND end_date >= '{end_date}'
+                    ORDER BY posts.id DESC
+                """
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+
+
     def get_pending_posts_count(self,query=None,group_ids=None):
         if query is not None:
             sql = f"SELECT COUNT(*) FROM posts WHERE state = 'PENDING' AND {query} "
@@ -272,6 +300,7 @@ class Post(Query):
                 result = cursor.fetchone()
                 return result["COUNT(*)"]
         elif group_ids is not None:
+            group_ids = ",".join([str(id) for id in group_ids])
             sql = f"SELECT COUNT(*) FROM posts WHERE state = 'PENDING' AND id IN (SELECT post_id FROM post_groups_subscription WHERE group_id IN ({group_ids}))"
             with connection.cursor() as cursor:
                 cursor.execute(sql)
@@ -283,7 +312,50 @@ class Post(Query):
                 cursor.execute(sql)
                 result = cursor.fetchone()
                 return result["COUNT(*)"]
-            
+    def get_my_posts(self,user:User=None):
+        """
+        Return all the posts a user can access. 
+        Administrators can view all posts. 
+        Moderators can view all posts in groups they moderate.
+        Users can view all posts they have created.
+        """       
+
+        sql = ""     
+
+        policy = UserPolicy(user=user)
+        if policy.isAnAdministator():
+            # return all posts
+            sql = "SELECT * FROM posts ORDER BY id DESC"
+        elif policy.isAModerator():
+            # return all posts in groups moderated by the user
+            sql = f"""
+            SELECT posts.*
+                from posts
+            where id in (select group_id from group_moderators where group_moderators.user_id = {user.id});
+                """
+        else:
+            sql=f"SELECT * FROM posts WHERE created_by = {user.id} ORDER BY id DESC"
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+
+    def filter_results(self,results,attribute,value,operator="="):
+        if operator == "=":
+            for result in results:
+                if result[attribute] != value:
+                    results.remove(result)
+        elif operator == "!=":
+            for result in results:
+                if result[attribute] == value:
+                    results.remove(result)
+        elif operator == "%":
+            for result in results:
+                if value not in result[attribute]:
+                    results.remove(result)
+        return results
+    
     def create_qr(self,field="web_link"):
         # create a qr code for the post
         qr = qrcode.QRCode(version=1, box_size=5, border=1)

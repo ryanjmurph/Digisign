@@ -27,6 +27,13 @@ def logout():
 
 @controller.route("/register", methods=["POST"])
 def register_post():
+    """
+    Registers a new user with the given name, username, password, and password confirmation.
+    If any required field is missing, an error message is flashed and the user is redirected to the registration page.
+    If the password and password confirmation do not match, an error message is flashed and the user is redirected to the registration page.
+    If the username already exists, an error message is flashed and the user is redirected to the registration page.
+    Otherwise, the user is created, logged in, and redirected to the registration success page.
+    """
     required_fields = ["name", "username", "password", "password_confirmation"]
 
     for field in required_fields:
@@ -49,7 +56,7 @@ def register_post():
         flash("Username already exists", "error")
         return redirect(url_for("authentication_controller.register"))
 
-    pw_hash = bcrypt.generate_password_hash(password)
+    pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
     user = User(email=username, password=pw_hash, name=name,
                 type="USER", state="APPROVAL_REQUIRED")
@@ -65,6 +72,12 @@ def register_post():
 
 @controller.route("/login", methods=["POST"])
 def login_post():
+    """
+    Logs in a user with the provided username and password.
+
+    Returns:
+        A redirect to the dashboard if the login is successful, otherwise a redirect to the login page with an error message.
+    """
     required_fields = ["username", "password"]
 
     for field in required_fields:
@@ -82,16 +95,15 @@ def login_post():
             "The username or password you entered is incorrect [username]", "error")
         return redirect(url_for("authentication_controller.login"))
 
-    if user.get_state() == "APPROVAL_REQUIRED":
-        flash("Your account is not approved yet", "error")
-        return redirect(url_for("authentication_controller.login"))
+    # if user.get_state() == "APPROVAL_REQUIRED":
+    #     flash("Your account is not approved yet", "error")
+    #     return redirect(url_for("authentication_controller.login"))
 
     if user.get_state() == "INACTIVE" or user.get_state() == "DELETED":
         flash("Your account is not active. Kindly reach out to an administrator", "error")
         return redirect(url_for("authentication_controller.login"))
 
-    pw_hash = bcrypt.generate_password_hash(password)
-    password_correct = bcrypt.check_password_hash(pw_hash, password)
+    password_correct = bcrypt.check_password_hash(user.password, password)
 
     if not password_correct:
         flash("The username or password you entered is incorrect", "error")

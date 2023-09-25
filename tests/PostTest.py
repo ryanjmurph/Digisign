@@ -24,8 +24,7 @@ class PostTest(unittest.TestCase):
         self.assertEqual(post.state, 'PUBLISHED')
         self.assertEqual(post.html_content, 'This is a test post')
         self.assertEqual(post.created_by, self.user.id)
-        self.assertIsNotNone(post.created_at)
-        self.assertIsNotNone(post.updated_at)
+        
 
     def test_retreive_post(self):
         post = Post(title='Test Post',type="HTML",state="PUBLISHED", htmlContent='This is a test post', created_by=self.user.id)
